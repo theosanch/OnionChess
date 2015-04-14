@@ -8,7 +8,7 @@ namespace OnionEngine
 {
     class Perft
     {
-        Board board = new Board();
+        PositionController board = new PositionController();
         MoveGenerator moveGenerator = new MoveGenerator();
         MoveController moveController = new MoveController();
 
@@ -23,7 +23,7 @@ namespace OnionEngine
 
         }
 
-        public ulong TestPosition(ref Position position, int depth)
+        private ulong TestPosition(ref Position position, int depth)
         {
 
             if (depth == 0)
@@ -77,7 +77,7 @@ namespace OnionEngine
                 {
                     break;
                 }
-                // if the position is incorrect there is an error in move generation
+                // if the position is incorrect there is an error in make/undo move
                 if (key != position.positionKey)
                 {
                     board.PrintPosition(position);

@@ -42,7 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitBoards.cs" />
-    <Compile Include="Board.cs" />
+    <Compile Include="PositionController.cs" />
+    <Compile Include="Brain.cs" />
     <Compile Include="Evaluate.cs" />
     <Compile Include="MoveController.cs" />
     <Compile Include="MoveGenerator.cs" />

@@ -9,11 +9,13 @@ namespace OnionEngine
     class UCI
     {
 
-        Board board = new Board();
+        PositionController board = new PositionController();
         MoveGenerator moveGen = new MoveGenerator();
 
         Position position = new Position();
         MoveController moveController = new MoveController();
+
+        Brain brain = new Brain();
 
         public void Loop()
         {
@@ -61,6 +63,15 @@ namespace OnionEngine
                     Console.WriteLine("id author Theodore J. Sanchez");
 
                     Console.WriteLine("uci ok");
+                }
+
+                else if (command[0] == "perft")
+                {
+                    brain.PerftTest(int.Parse(command[1]));
+                }
+                else if (command[0] == "test")
+                {
+                    brain.Test();
                 }
             }
 
@@ -116,12 +127,14 @@ namespace OnionEngine
             int i = 0;
             if (command[1] == "startpos")   // set up the starting position
             {
-                position = board.ParseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".Split(' '));
+                //position = board.ParseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".Split(' '));
+                brain.SetPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
                 i = 3;
             }
             else if (command[1] == "fen")
             {
-                position = board.ParseFen(string.Format("{0} {1} {2} {3} {4} {5}", command[2], command[3], command[4], command[5], command[6], command[7]).Split(' '));
+                //position = board.ParseFen(string.Format("{0} {1} {2} {3} {4} {5}", command[2], command[3], command[4], command[5], command[6], command[7]).Split(' '));
+                brain.SetPosition(command[2] + " " + command[3] + " " + command[4] + " " + command[5] + " " + command[6] + " " + command[7]);
                 i = 9;
             }
 

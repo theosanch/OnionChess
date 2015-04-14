@@ -12,7 +12,7 @@ namespace OnionEngine
         // A single move is represented by an int
         // from square, to square, and any other needed data is bitwise or into the int
 
-        private int enPassant = 0x40000, pawnStart = 0x80000, castle = 0x1000000;
+        private int enPassant = 0x40000, doubleMove = 0x80000, castle = 0x1000000;
 
         #region move to int
         // a movement is stored in a single int
@@ -21,7 +21,7 @@ namespace OnionEngine
             return ((int)from) | ((int)to << 7) | ((int)captured << 14) | ((int)promoted << 20);
         }
 
-        // 1 = en passant capture 2 = castle move 3 = pawn start move
+        // 1 = en passant capture 2 = castle move 3 = double move
         public int ToInt(Square from, Square to, Piece captured, Piece promoted, int n)
         {
             if (n == 1)
@@ -34,7 +34,7 @@ namespace OnionEngine
             }
             else
             {
-                return (ToInt(from, to, captured, promoted)) | (this.pawnStart);
+                return (ToInt(from, to, captured, promoted)) | (this.doubleMove);
             }
         }
         #endregion
@@ -66,7 +66,7 @@ namespace OnionEngine
         }
 
         // was it an en passant capture?
-        public bool GetEnPassant(int move)
+        public bool GetEnPassantCapture(int move)
         {
             return (move & enPassant) > 0;
         }
@@ -76,9 +76,9 @@ namespace OnionEngine
             return (move & castle) > 0;
         }
         // was it a pawn starting position move
-        public bool GetPawnStartMove(int move)
+        public bool GetPawnDoubleMove(int move)
         {
-            return (move & pawnStart) > 0;
+            return (move & doubleMove) > 0;
         }
         #endregion
 
@@ -159,7 +159,7 @@ namespace OnionEngine
             }
             #endregion
 
-            if (to == position.enPas)
+            if (to == position.enPassant)
             {
                 return ToInt(from, to, position.pieceTypeBySquare[(int)to], promotion,1);
             }

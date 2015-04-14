@@ -18,22 +18,21 @@ namespace OnionEngine
         // whose turn it is to move.
         public Color side = Color.Both;
         // what square is currently available for en passant
-        public Square enPas = Square.INVALID;
+        public Square enPassant = Square.INVALID;
         // what the castle status is. A calculation is done using the Castle enumerator.
         public int castlePerm = 0;
 
         // fifty move rule counter
         public int fiftyMoveCounter;
-        public int ply, hisPly;
+        // what ply is this move at
+        public int ply;
 
         
         #endregion
 
         #region piece information
-        // piece location
-
         // what piece type is on each square
-        public Piece[] pieceTypeBySquare = new Piece[120];
+        public Piece[] pieceTypeBySquare = new Piece[64];
         // track location of each piece in a single list. 
         // 13: each piece type including empty.
         // 10: up to ten pieces for that type.
@@ -44,7 +43,27 @@ namespace OnionEngine
 
         // bit-board location
         public ulong[] pawnBitBoard = new ulong[3];
-        
+
+        /// <summary>
+        /// bitboard location for each piece type
+        /// </summary>
+        public ulong[] positions = new ulong[12];
+
+        public ulong WhitePosition 
+        { 
+            get
+            {
+                return positions[0] | positions[1] | positions[2] | positions[3] | positions[4] | positions[5]; 
+            }
+        }
+        public ulong BlackPosition
+        {
+            get
+            {
+                return positions[6] | positions[7] | positions[8] | positions[9] | positions[10] | positions[11]; 
+            }
+        }
+
 
         public int[] materialScore = new int[2];
 
@@ -66,14 +85,14 @@ namespace OnionEngine
             // this copies all value types
             Position results = (Position) this.MemberwiseClone(); // "this" used just for clarity
 
-            results.pieceTypeBySquare = new Piece[120];
+            results.pieceTypeBySquare = new Piece[64];
             results.pieceNumber = new int[13];
             results.pawnBitBoard = new ulong[3];
             results.materialScore = new int[2];
             results.pieceSquareByType = new Square[13,10];
 
             // ref type copying - arrays are ref type
-            for (int i = 0; i < 120; i++)
+            for (int i = 0; i < 64; i++)
             {
                 results.pieceTypeBySquare[i] = this.pieceTypeBySquare[i];
 
