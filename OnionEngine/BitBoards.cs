@@ -8,12 +8,14 @@ namespace OnionEngine
 {
     class BitBoards
     {
-        private readonly int[] BitTable = {
-            63, 30, 3, 32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34, 61, 29, 2,
-            51, 21, 43, 45, 10, 18, 47, 1, 54, 9, 57, 0, 35, 62, 31, 40, 4, 49, 5, 52,
-            26, 60, 6, 23, 44, 46, 27, 56, 16, 7, 39, 48, 24, 59, 14, 12, 55, 38, 28,
-            58, 20, 37, 17, 36, 8
-            };
+        private readonly int[] BitTable = { 63, 30,  3, 32, 25, 41, 22, 33,
+                                            15, 50, 42, 13, 11, 53, 19, 34,
+                                            61, 29,  2, 51, 21, 43, 45, 10,
+                                            18, 47,  1, 54,  9, 57,  0, 35,
+                                            62, 31, 40,  4, 49,  5, 52, 26, 
+                                            60,  6, 23, 44, 46, 27, 56, 16,
+                                             7, 39, 48, 24, 59, 14, 12, 55,
+                                            38, 28, 58, 20, 37, 17, 36,  8 };
 
         #region General Board Info
         #region file and rank
@@ -108,6 +110,8 @@ namespace OnionEngine
         public ulong[] bishopMoves = new ulong[64];
         public ulong[] rookMoves = new ulong[64];
         public ulong[] kingMoves = new ulong[64];
+
+        public ulong[,] intersectLines = new ulong[64,64];
         #endregion
 
         public BitBoards()
@@ -119,6 +123,8 @@ namespace OnionEngine
             InitBishopMoves();
             InitRookMoves();
             InitKingMoves();
+
+            InitIntersectLines();
         }
 
         private void InitKnightMoves()
@@ -218,6 +224,86 @@ namespace OnionEngine
             }
         }
 
+        private void InitIntersectLines()
+        {
+            for (int squareA = 0; squareA < 64; squareA++)
+            {
+                for (int squareB = 0; squareB < 64; squareB++)
+                {
+                    ulong results = 0UL;
+                    int low, high;
+                    if (squareA > squareB)
+                    {
+                        high = squareA;
+                        low = squareB;
+                    }
+                    else
+                    {
+                        high = squareB;
+                        low = squareA;
+                    }
+
+                    // left bit shift by 3 conveniently gives us the 0-7 rank given a 0-63 square number
+                    // the same is true for (bit and 7) with files
+
+                    //int rank = 8 >> 3;
+                    //int file = 0 & 7;
+
+                    // same rank
+                    if ((squareA >> 3) == (squareB >> 3))
+                    {
+                        high--; // minus one first so the destination square is not included
+                        while(high > low)
+                        {
+                            results |= ranks[squareA >> 3] & files[high & 7];
+                            high--;
+                        }
+
+                        intersectLines[squareA, squareB] = results;
+                        continue;
+                    }
+                    // same file
+                    else if ((squareA & 7) == (squareB & 7))
+                    {
+                        high -= 8; // minus one first so the destination square is not included
+                        while (high > low)
+                        {
+                            results |= files[squareA & 7] & ranks[high >> 3];
+                            high -= 8;
+                        }
+
+                        intersectLines[squareA, squareB] = results;
+                        continue;
+                    }
+                    // diagonal
+                    else if (SQ64toDSW[squareA] == SQ64toDSW[squareB])
+                    {
+                        high -= 9; // minus one first so the destination square is not included
+                        while (high > low)
+                        {
+                            results |= diagonalsSW[SQ64toDSW[squareA]] & ranks[high >> 3];
+                            high -= 9;
+                        }
+                        intersectLines[squareA, squareB] = results;
+                        continue;
+                    }
+                    else if (SQ64toDNE[squareA] == SQ64toDNE[squareB])
+                    {
+                        high -= 7; // minus one first so the destination square is not included
+                        while (high > low)
+                        {
+                            results |= diagonalsNE[SQ64toDNE[squareA]] & ranks[high >> 3];
+                            high -= 7;
+                        }
+                        intersectLines[squareA, squareB] = results;
+                        continue;
+                    }
+                    intersectLines[squareA, squareB] = 0UL;
+                }
+            
+            }
+        }
+
 
         // how many bits are in this bit board. how many pawns for example
         public int CountBits(ulong bb)
@@ -237,5 +323,11 @@ namespace OnionEngine
             bb &= (bb - 1);
             return BitTable[(fold * 0x783a9b23) >> 26];
         }
+        // convert a square number to a bitboard with that one square "selected"
+        public ulong SquareToBit(int square)
+        {
+            return 1UL << square;
+        }
+
     }
 }

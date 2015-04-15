@@ -168,105 +168,113 @@ namespace OnionEngine
             AddCaptureMove(move.ToInt(from, to, captured, Piece.EMPTY));
         }
 
+        #region old intersect logic
         // return true if there is a piece between these two squares
-        private bool DiagonalIntersect(Position position, Square from, Square to, Piece piece)
+        //private bool DiagonalIntersect(Position position, Square from, Square to, Piece piece)
+        //{
+        //    Rank high, low;
+        //    ulong diagonal, results = 0UL;
+        //    // get the diagonal
+        //    #region get diagonal
+        //    if (from > to)
+        //    {
+        //        high = SquareToRank[(int)from];
+        //        low = SquareToRank[(int)to];
+
+        //        if (SquareToFile[(int)from] < SquareToFile[(int)to])
+        //        {
+        //            diagonal = bitboardController.diagonalsSW[bitboardController.SQ64toDSW[(int)from]];
+        //        }
+        //        else
+        //        {
+        //            diagonal = bitboardController.diagonalsNE[bitboardController.SQ64toDNE[(int)from]];
+        //        }
+        //    }
+        //    else
+        //    {
+        //        high = SquareToRank[(int)to];
+        //        low = SquareToRank[(int)from];
+
+        //        if (SquareToFile[(int)to] < SquareToFile[(int)from])
+        //        {
+        //            diagonal = bitboardController.diagonalsSW[bitboardController.SQ64toDSW[(int)to]];
+        //        }
+        //        else
+        //        {
+        //            diagonal = bitboardController.diagonalsNE[bitboardController.SQ64toDNE[(int)to]];
+        //        }
+        //    }
+        //    #endregion
+
+        //    // remove all ranks at high square and above
+        //    while (high != low)
+        //    {
+        //        results |= diagonal & bitboardController.ranks[(int)high];
+        //        high--;
+        //    }
+
+        //    if ((results & (position.WhitePosition | position.BlackPosition)) > 0)
+        //    {
+        //        return true;
+        //    }
+        //    position.attacks[(int)piece] = diagonal;
+        //    return false;
+        //}
+        //private bool Intersect(Position position, Square from, Square to, Piece piece)
+        //{
+        //    ulong results = 0UL;
+        //    // check if diagonal
+        //    if (SquareToRank[(int)from] == SquareToRank[(int)to])
+        //    {
+        //        // same rank
+        //        while (from != to)
+        //        {
+        //            results |= bitboardController.files[(int)SquareToFile[(int)from]] & bitboardController.ranks[(int)SquareToRank[(int)from]];
+        //            if (from > to)
+        //            {
+        //                from -= 8;
+        //            }
+        //            else
+        //            {
+        //                from += 8;
+        //            }
+        //        }
+        //    }
+        //    else if (SquareToFile[(int)from] == SquareToFile[(int)to])
+        //    {
+        //        // same file
+        //        while (from != to)
+        //        {
+        //            results |= bitboardController.ranks[(int)SquareToRank[(int)from]] & bitboardController.files[(int)SquareToFile[(int)from]];
+        //            if (from > to)
+        //            {
+        //                from -= 8;
+        //            }
+        //            else
+        //            {
+        //                from += 8;
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // diagonal
+        //        return DiagonalIntersect(position, from, to, piece);
+        //    }
+
+        //    if ((results & (position.WhitePosition | position.BlackPosition)) > 0)
+        //    {
+        //        return true;
+        //    }
+        //    position.attacks[(int)piece] = results;
+        //    return false;
+        //}
+        #endregion
+
+
+        private ulong CircularLeftShift(ulong bitboard, int shift)
         {
-            Rank high, low;
-            ulong diagonal, results = 0UL;
-            // get the diagonal
-            #region get diagonal
-            if (from > to)
-            {
-                high = SquareToRank[(int)from];
-                low = SquareToRank[(int)to];
-
-                if (SquareToFile[(int)from] < SquareToFile[(int)to])
-                {
-                    diagonal = bitboardController.diagonalsSW[bitboardController.SQ64toDSW[(int)from]];
-                }
-                else
-                {
-                    diagonal = bitboardController.diagonalsNE[bitboardController.SQ64toDNE[(int)from]];
-                }
-            }
-            else
-            {
-                high = SquareToRank[(int)to];
-                low = SquareToRank[(int)from];
-
-                if (SquareToFile[(int)to] < SquareToFile[(int)from])
-                {
-                    diagonal = bitboardController.diagonalsSW[bitboardController.SQ64toDSW[(int)to]];
-                }
-                else
-                {
-                    diagonal = bitboardController.diagonalsNE[bitboardController.SQ64toDNE[(int)to]];
-                }
-            }
-            #endregion
-
-            // remove all ranks at high square and above
-            while (high != low)
-            {
-                results |= diagonal & bitboardController.ranks[(int)high];
-                high--;
-            }
-
-            if ((results & (position.WhitePosition | position.BlackPosition)) > 0)
-            {
-                return true;
-            }
-            position.attacks[(int)piece] = diagonal;
-            return false;
-        }
-        private bool Intersect(Position position, Square from, Square to, Piece piece)
-        {
-            ulong results = 0UL;
-            // check if diagonal
-            if (SquareToRank[(int)from] == SquareToRank[(int)to])
-            {
-                // same rank
-                while (from != to)
-                {
-                    results |= bitboardController.files[(int)SquareToFile[(int)from]] & bitboardController.ranks[(int)SquareToRank[(int)from]];
-                    if (from > to)
-                    {
-                        from -= 8;
-                    }
-                    else
-                    {
-                        from += 8;
-                    }
-                }
-            }
-            else if (SquareToFile[(int)from] == SquareToFile[(int)to])
-            {
-                // same file
-                while (from != to)
-                {
-                    results |= bitboardController.ranks[(int)SquareToRank[(int)from]] & bitboardController.files[(int)SquareToFile[(int)from]];
-                    if (from > to)
-                    {
-                        from -= 8;
-                    }
-                    else
-                    {
-                        from += 8;
-                    }
-                }
-            }
-            else
-            {
-                // diagonal
-                return DiagonalIntersect(position, from, to, piece);
-            }
-
-            if ((results & (position.WhitePosition | position.BlackPosition)) > 0)
-            {
-                return true;
-            }
-            position.attacks[(int)piece] = results;
-            return false;
+            return (bitboard << shift) | (bitboard >> 64 - shift);
         }
 
         public int[] GenerateAllMoves(Position position)
@@ -294,31 +302,27 @@ namespace OnionEngine
 
             // king in check not validated
             #region generate moves
+            // a helper for shifting without an if statement
+            int[] shiftValues = { 8, 64 - 8, 7, 64 - 9, 9, 64 - 7 };
+
+            // will equal 6(black) or 0(white). 
+            // this eliminates the need of having to use if statements because all black pieces are +6 in their respective arrays
+            int color = (int)position.side * 6;
+            ulong friendlyLocations = (position.locations[color] | position.locations[1 + color] | position.locations[2 + color] | position.locations[3 + color] | position.locations[4 + color] | position.locations[5 + color]);
+            ulong enemyLocations = (position.locations[6 - color] | position.locations[7 - color] | position.locations[8 - color] | position.locations[9 - color] | position.locations[10 - color] | position.locations[11 - color]);
 
             // generate all valid pawn moves
             #region pawn moves
-            if (position.side == Color.w)
-            {
-                // move forward one         move forward one square         if the position is empty
-                pawnMoves = (position.locations[0] << 8) & ~(position.WhitePosition & position.BlackPosition);
-                // double move              pieces on the third rank        remove if occupied
-                pawnDoubleMoves |= ((pawnMoves & bitboardController.ranks[2]) << 8) & ~(position.WhitePosition & position.BlackPosition);
-                // pawn captures                                        remove edge pawns and add en passant
-                pawnCaptures = (position.locations[0] << 7) & (position.BlackPosition & ~bitboardController.files[7] & (ulong)position.enPassant);
-                pawnCaptures |= (position.locations[0] << 9) & (position.BlackPosition & ~bitboardController.files[0] & (ulong)position.enPassant);
-                position.attacks[0] = pawnCaptures;
-            }
-            else
-            {
-                // move forward one         move forward one square         if the position is empty
-                pawnMoves = (position.locations[0] >> 8) & ~(position.WhitePosition & position.BlackPosition);
-                // double move              pieces on the third rank        remove if occupied
-                pawnMoves |= ((pawnMoves & bitboardController.ranks[2]) >> 8) & ~(position.WhitePosition & position.BlackPosition);
-                // pawn captures                                        // remove edge pawns
-                pawnCaptures = (position.locations[0] >> 7) & (position.WhitePosition & ~bitboardController.files[0] & (ulong)position.enPassant);
-                pawnCaptures |= (position.locations[0] >> 9) & (position.WhitePosition & ~bitboardController.files[7] & (ulong)position.enPassant);
-                position.attacks[6] = pawnCaptures;
-            }
+            // move forward one         move forward one square         if the position is empty
+
+            pawnMoves = CircularLeftShift(position.locations[color], shiftValues[(int)position.side]) & ~(friendlyLocations & enemyLocations);
+            // double move              pieces on the third rank        remove if occupied
+            pawnDoubleMoves |= ((pawnMoves & bitboardController.ranks[2]) << 8) & ~(friendlyLocations & enemyLocations);
+            // pawn captures                                        remove edge pawns and add en passant
+            pawnCaptures = CircularLeftShift(position.locations[color], shiftValues[(int)position.side] + 2) & (enemyLocations & ~bitboardController.files[7] & bitboardController.SquareToBit((int)position.enPassant));
+            pawnCaptures |= CircularLeftShift(position.locations[color], shiftValues[(int)position.side] + 4) & (enemyLocations & ~bitboardController.files[0] & bitboardController.SquareToBit((int)position.enPassant));
+            
+            position.attacks[color] = pawnCaptures;
 
             #region add moves
 
@@ -347,20 +351,11 @@ namespace OnionEngine
             #endregion
             #endregion
 
-            // generate all slide moves not checking for blocks
+            // generate all slide moves
             #region rook bishop queen
-
-            // get bishop location
-            ulong bishops;
-            ulong rooks;
-            ulong queens;
-
-            int color = (int)position.side * 6;
-
-
-            bishops = position.locations[2 + color];
-            rooks = position.locations[3 + color];
-            queens = position.locations[4 + color];
+            ulong bishops = position.locations[2 + color];
+            ulong rooks = position.locations[3 + color];
+            ulong queens = position.locations[4 + color];
 
             while (bishops > 0)
             {
@@ -368,7 +363,7 @@ namespace OnionEngine
                 // moves
                 bishopMoves = bitboardController.bishopMoves[(int)from];
                 // captures
-                bishopCaptures = bishopMoves & (position.locations[6 - color] | position.locations[7 - color] | position.locations[8 - color] | position.locations[9 - color] | position.locations[10 - color] | position.locations[11 - color]);
+                bishopCaptures = bishopMoves & enemyLocations;
                 // remove captures from moves
                 bishopMoves = bishopMoves ^ bishopCaptures;
 
@@ -377,7 +372,7 @@ namespace OnionEngine
                 {
                     Square to = (Square)bitboardController.PopBit(ref bishopMoves);
                     // if no piece is between the move
-                    if (!DiagonalIntersect(position, from, to, Piece.wB + color))
+                    if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
                     {
                         AddQuiteMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                     }
@@ -386,8 +381,9 @@ namespace OnionEngine
                 {
                     Square to = (Square)bitboardController.PopBit(ref bishopCaptures);
                     Piece capture = position.pieceTypeBySquare[(int)to];
-                    if (!DiagonalIntersect(position, from, to, Piece.wB + color))
+                    if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
                     {
+                        position.attacks[2 + color] |= bitboardController.SquareToBit((int)to);
                         AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
@@ -398,14 +394,14 @@ namespace OnionEngine
 
                 rookMoves = bitboardController.rookMoves[bitboardController.PopBit(ref rooks)];
                 // attacks
-                rookCaptures = rookMoves & (position.locations[6 - color] | position.locations[7 - color] | position.locations[8 - color] | position.locations[9 - color] | position.locations[10 - color] | position.locations[11 - color]);
+                rookCaptures = rookMoves & enemyLocations;
                 rookMoves = rookMoves ^ rookCaptures;
 
                 // add moves
                 while (rookMoves > 0)
                 {
                     Square to = (Square)bitboardController.PopBit(ref rookMoves);
-                    if (!Intersect(position, from, to, Piece.wR + color))
+                    if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
                     {
                         AddQuiteMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                     }
@@ -414,8 +410,9 @@ namespace OnionEngine
                 {
                     Square to = (Square)bitboardController.PopBit(ref rookCaptures);
                     Piece capture = position.pieceTypeBySquare[(int)to];
-                    if (!Intersect(position, from, to, Piece.wR + color))
+                    if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
                     {
+                        position.attacks[3 + color] |= bitboardController.SquareToBit((int)to);
                         AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
@@ -427,14 +424,14 @@ namespace OnionEngine
                 int square = bitboardController.PopBit(ref queens);
                 queenMoves = bitboardController.rookMoves[square] | bitboardController.bishopMoves[square];
                 //attacks
-                queenCaptures = queenMoves & (position.locations[6 - color] | position.locations[7 - color] | position.locations[8 - color] | position.locations[9 - color] | position.locations[10 - color] | position.locations[11 - color]);
+                queenCaptures = queenMoves & enemyLocations;
                 queenMoves = queenMoves ^ queenCaptures;
 
                 // add moves
                 while (queenMoves > 0)
                 {
                     Square to = (Square)bitboardController.PopBit(ref queenMoves);
-                    if (!Intersect(position, from, to, Piece.wQ + color))
+                    if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
                     {
                         AddQuiteMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                     }
@@ -443,14 +440,20 @@ namespace OnionEngine
                 {
                     Square to = (Square)bitboardController.PopBit(ref queenCaptures);
                     Piece capture = position.pieceTypeBySquare[(int)to];
-                    if (!Intersect(position, from, to, Piece.wQ + color))
+                    if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
                     {
+                        position.attacks[4 + color] |= bitboardController.SquareToBit((int)to);
                         AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
             }
             #endregion
 
+            // king and knight
+            #region king and knight
+
+
+            #endregion
             #endregion
 
             #region old move generation
