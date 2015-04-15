@@ -85,7 +85,7 @@ namespace OnionEngine
         public readonly int[] SQ64toDNE = {
                                            0, 1, 2,  3,  4,  5,  6,  7,
                                            1, 2, 3,  4,  5,  6,  7,  8,
-                                           2, 2, 3,  4,  5,  6,  7,  8,
+                                           2, 3, 4,  5,  6,  7,  8,  9,
                                            3, 4, 5,  6,  7,  8,  9, 10,
                                            4, 5, 6,  7,  8,  9, 10, 11,
                                            5, 6, 7,  8,  9, 10, 11, 12,
@@ -111,7 +111,7 @@ namespace OnionEngine
         public ulong[] rookMoves = new ulong[64];
         public ulong[] kingMoves = new ulong[64];
 
-        public ulong[,] intersectLines = new ulong[64,64];
+        public ulong[,] intersectLines = new ulong[64, 64];
         #endregion
 
         public BitBoards()
@@ -129,24 +129,30 @@ namespace OnionEngine
 
         private void InitKnightMoves()
         {
-            for (ulong i = 0; i < 64; i++)
+            for (int i = 0; i < 64; i++)
             {
-                knightMoves[i] = (i << 17) & ~files[7];
-                knightMoves[i] |= (i << 15) & ~(files[0]); // 
-                knightMoves[i] |= (i << 10) & ~(files[6] | files[7]);
-                knightMoves[i] |= (i << 6) & ~(files[0] | files[1]);
+                ulong square = SquareToBit(i);
+                                    
+                knightMoves[i]  = (square & ~files[7]) << 17;               // up right
+                knightMoves[i] |= (square & ~files[0]) << 15 ;             // 
+                knightMoves[i] |= (square & ~(files[6] | files[7])) << 10;
+                knightMoves[i] |= (square & ~(files[0] | files[1])) << 6;
 
-                knightMoves[i] |= (i >> 17) & ~files[0];
-                knightMoves[i] |= (i >> 15) & ~(files[7]); // 
-                knightMoves[i] |= (i >> 10) & ~(files[0] | files[1]);
-                knightMoves[i] |= (i >> 6) & ~(files[6] | files[7]);
+                knightMoves[i] |= (square & ~files[0]) >> 17;               // down left
+                knightMoves[i] |= (square & ~files[7]) >> 15;             // down right
+                knightMoves[i] |= (square & ~(files[0] | files[1])) >> 10;  // down left
+                knightMoves[i] |= (square & ~(files[6] | files[7])) >> 6;
             }
         }
         private void InitBishopMoves()
         {
+
             for (int i = 0; i < 64; i++)
             {
-                bishopMoves[i] = (diagonalsSW[SQ64toDSW[i]] ^ diagonalsNE[SQ64toDNE[i]]);
+
+                bishopMoves[i] = (diagonalsNE[SQ64toDNE[i]] ^ diagonalsSW[SQ64toDSW[i]]);
+
+
             }
         }
         private void InitRookMoves()
@@ -170,7 +176,7 @@ namespace OnionEngine
         }
         private void InitKingMoves()
         {
-            for (ulong i = 0; i < 64; i++)
+            for (int i = 0; i < 64; i++)
             {
                 #region corner positions
                 // corner positions
@@ -186,39 +192,40 @@ namespace OnionEngine
                 }
                 else if (i == 63)
                 {
-                    kingMoves[63] = 0x40c0000000000000;
+                    kingMoves[63] = 0x40c0000000000000UL;
                     continue;
                 }
                 else if (i == 56)
                 {
-                    kingMoves[56] = 0x203000000000000;
+                    kingMoves[56] = 0x203000000000000UL;
                     continue;
                 }
                 #endregion
 
+                ulong square = SquareToBit(i);
                 // if it is on a border square;
-                if ((i & borders) != 0)
+                if ((square & borders) != 0)
                 {
-                    if ((i & ranks[0]) != 0)
-                    {
-                        kingMoves[i] = (ulong)((i << 1) | (i << 9) | (i << 8) | (i << 7) | (i >> 1));
+                    if ((square & ranks[0]) != 0)
+                    {   //                   left         up left           up           up right        right
+                        kingMoves[i] = (square >> 1) | (square << 7) | (square << 8) | (square << 9) | (square << 1);
                     }
-                    else if ((i & ranks[7]) != 0)
-                    {
-                        kingMoves[i] = (ulong)((i << 1) | (i >> 1) | (i >> 9) | (i >> 8) | (i >> 7));
+                    else if ((square & ranks[7]) != 0)
+                    {   //                               down left         down         down right
+                        kingMoves[i] = (square >> 1) | (square >> 9) | (square >> 8) | (square >> 7) | (square << 1);
                     }
-                    else if ((i & files[0]) != 0)
+                    else if ((square & files[0]) != 0)
                     {
-                        kingMoves[i] = (ulong)((i << 8) | (i << 7) | (i >> 1) | (i >> 9) | (i >> 8));
+                        kingMoves[i] = (square << 8) | (square << 9) | (square << 1) | (square >> 7) | (square >> 8);
                     }
-                    else if ((i & files[7]) != 0)
+                    else if ((square & files[7]) != 0)
                     {
-                        kingMoves[i] = (ulong)((i << 1) | (i << 9) | (i << 8) | (i >> 8) | (i >> 7));
+                        kingMoves[i] = (square << 8) | (square << 7) | (square >> 1) | (square >> 9) | (square >> 8);
                     }
                 }
                 else // normal generation
                 {
-                    kingMoves[i] = (ulong)((i << 1) | (i << 9) | (i << 8) | (i << 7) | (i >> 1) | (i >> 9) | (i >> 8) | (i >> 7));
+                    kingMoves[i] = (square << 1) | (square << 9) | (square << 8) | (square << 7) | (square >> 1) | (square >> 9) | (square >> 8) | (square >> 7);
                 }
 
             }
@@ -253,7 +260,7 @@ namespace OnionEngine
                     if ((squareA >> 3) == (squareB >> 3))
                     {
                         high--; // minus one first so the destination square is not included
-                        while(high > low)
+                        while (high > low)
                         {
                             results |= ranks[squareA >> 3] & files[high & 7];
                             high--;
@@ -300,7 +307,7 @@ namespace OnionEngine
                     }
                     intersectLines[squareA, squareB] = 0UL;
                 }
-            
+
             }
         }
 
