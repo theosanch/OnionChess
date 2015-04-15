@@ -8,13 +8,6 @@ namespace OnionEngine
 {
     class UCI
     {
-
-        PositionController board = new PositionController();
-        MoveGenerator moveGen = new MoveGenerator();
-
-        Position position = new Position();
-        MoveController moveController = new MoveController();
-
         Brain brain = new Brain();
 
         public void Loop()
@@ -25,7 +18,7 @@ namespace OnionEngine
             //Console.WriteLine("id name Onion 0.1");
             //Console.WriteLine("id author Theodore J. Sanchez");
 
-            //Console.WriteLine("uci ok");
+            Console.WriteLine("uci ok");
 
             while (true)
             {
@@ -51,7 +44,7 @@ namespace OnionEngine
                 }
                 else if (command[0] == "go")
                 {
-                    ParseGo(command);
+                    brain.Go(command);
                 }
                 else if (command[0] == "quit") // close engine
                 {
@@ -74,52 +67,6 @@ namespace OnionEngine
                     brain.Test();
                 }
             }
-
-        }
-
-        private void ParseGo(string[] command)
-        {
-            int depth = -1, time = -1, increment = 0;
-            int movesToGo = 30, moveTime = -1;
-
-            for (int i = 0; i < command.Length; i++)
-            {
-                switch (command[i])
-                {
-                    case "depth":
-                        depth = int.Parse(command[i + 1]);
-                        break;
-                    case "wtime":
-                        if (position.side == Color.w)
-                            time = int.Parse(command[i + 1]);
-                        break;
-                    case "btime":
-                        if (position.side == Color.b)
-                            time = int.Parse(command[i + 1]);
-                        break;
-                    case "winc":
-                        if (position.side == Color.w)
-                            increment = int.Parse(command[i + 1]);
-                        break;
-                    case "binc":
-                        if (position.side == Color.b)
-                            increment = int.Parse(command[i + 1]);
-                        break;
-                    case "movetime":
-                        moveTime = int.Parse(command[i + 1]);
-                        break;
-                    case "movestogo":
-                        movesToGo = int.Parse(command[i + 1]);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            int[] list = moveGen.GenerateAllMoves(position);
-            Console.WriteLine("bestmove " + moveController.PrintMove(list[0]));
-            
-            board.MakeMove(ref position,list[0]);
         }
 
         private void ParsePosition(string[] command)
@@ -139,14 +86,14 @@ namespace OnionEngine
             }
 
             // parse any moves that have been made past the initial position
-            for (i = i + 0; i < command.Length; i++)
-            {
-                board.MakeMove(ref position, moveController.ParseMove(position,command[i]));
-                position.ply = 0;
-            }
+            //for (i = i + 0; i < command.Length; i++)
+            //{
+            //    board.MakeMove(ref position, moveController.ParseMove(position,command[i]));
+            //    position.ply = 0;
+            //}
 
 
-            board.PrintPosition(position);
+            //board.PrintPosition(position);
         }
 
     }

@@ -8,8 +8,9 @@ namespace OnionEngine
 {
     class Brain
     {
-        PositionController positionController = new PositionController();
-        MoveGenerator moveGen = new MoveGenerator();
+        PositionController positionController;
+        MoveGenerator moveGen;
+        BitBoards bitboards;
         Evaluate evaluation = new Evaluate();
 
         public Position currentPosition;
@@ -23,6 +24,10 @@ namespace OnionEngine
 
         public Brain()
         {
+            bitboards = new BitBoards();
+            positionController = new PositionController(bitboards);
+            moveGen = new MoveGenerator(bitboards);
+
             currentPosition = positionController.StartPosition();
         }
 
@@ -56,7 +61,7 @@ namespace OnionEngine
         //run perft test on current position
         public void PerftTest(int plyDepth)
         {
-            Perft perft = new Perft();
+            Perft perft = new Perft(bitboards);
 
             perft.Test(ref currentPosition,plyDepth);
         }
@@ -67,5 +72,10 @@ namespace OnionEngine
         }
 
 
+
+        internal void Go(string[] command)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

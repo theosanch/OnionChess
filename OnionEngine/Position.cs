@@ -47,20 +47,21 @@ namespace OnionEngine
         /// <summary>
         /// bitboard location for each piece type
         /// </summary>
-        public ulong[] positions = new ulong[12];
+        public ulong[] locations = new ulong[12];
+        public ulong[] attacks = new ulong[12];
 
         public ulong WhitePosition 
         { 
             get
             {
-                return positions[0] | positions[1] | positions[2] | positions[3] | positions[4] | positions[5]; 
+                return locations[0] | locations[1] | locations[2] | locations[3] | locations[4] | locations[5]; 
             }
         }
         public ulong BlackPosition
         {
             get
             {
-                return positions[6] | positions[7] | positions[8] | positions[9] | positions[10] | positions[11]; 
+                return locations[6] | locations[7] | locations[8] | locations[9] | locations[10] | locations[11]; 
             }
         }
 

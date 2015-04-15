@@ -10,7 +10,7 @@ namespace OnionEngine
     {
         // helper class
         MoveController move = new MoveController();
-        BitBoards bitboardController = new BitBoards();
+        BitBoards bitboardController;
 
         // MoveGenerator has a main task of generating all legal moves for a given position
 
@@ -32,9 +32,10 @@ namespace OnionEngine
         private List<int> legalMoves = new List<int>();
         private int[] score = new int[128];
         private int moveCount = 0; // how many moves have been generated so far this move.
-        
-        public MoveGenerator()
+
+        public MoveGenerator(BitBoards bitboard)
         {
+            bitboardController = bitboard;
             InitFileRankBoards();
         }
 
@@ -168,7 +169,7 @@ namespace OnionEngine
         }
 
         // return true if there is a piece between these two squares
-        private bool DiagonalIntersect(Position position, Square from, Square to)
+        private bool DiagonalIntersect(Position position, Square from, Square to, Piece piece)
         {
             Rank high, low;
             ulong diagonal, results = 0UL;
@@ -215,9 +216,10 @@ namespace OnionEngine
             {
                 return true;
             }
+            position.attacks[(int)piece] = diagonal;
             return false;
         }
-        private bool Intersect(Position position, Square from, Square to)
+        private bool Intersect(Position position, Square from, Square to, Piece piece)
         {
             ulong results = 0UL;
             // check if diagonal
@@ -256,14 +258,14 @@ namespace OnionEngine
             else
             {
                 // diagonal
-                return DiagonalIntersect(position,from,to);
+                return DiagonalIntersect(position, from, to, piece);
             }
 
             if ((results & (position.WhitePosition | position.BlackPosition)) > 0)
             {
                 return true;
             }
-
+            position.attacks[(int)piece] = results;
             return false;
         }
 
@@ -273,8 +275,6 @@ namespace OnionEngine
             legalMoves = new List<int>();
             score = new int[128];
             moveCount = 0;
-
-            Color color = position.side;
 
             ulong pawnMoves = 0UL;
             ulong pawnDoubleMoves = 0UL;
@@ -300,22 +300,24 @@ namespace OnionEngine
             if (position.side == Color.w)
             {
                 // move forward one         move forward one square         if the position is empty
-                pawnMoves = (position.positions[0] << 8) & ~(position.WhitePosition & position.BlackPosition);
+                pawnMoves = (position.locations[0] << 8) & ~(position.WhitePosition & position.BlackPosition);
                 // double move              pieces on the third rank        remove if occupied
                 pawnDoubleMoves |= ((pawnMoves & bitboardController.ranks[2]) << 8) & ~(position.WhitePosition & position.BlackPosition);
                 // pawn captures                                        remove edge pawns and add en passant
-                pawnCaptures = (position.positions[0] << 7) & (position.BlackPosition & ~bitboardController.files[7] & (ulong)position.enPassant);
-                pawnCaptures |= (position.positions[0] << 9) & (position.BlackPosition & ~bitboardController.files[0] & (ulong)position.enPassant);
+                pawnCaptures = (position.locations[0] << 7) & (position.BlackPosition & ~bitboardController.files[7] & (ulong)position.enPassant);
+                pawnCaptures |= (position.locations[0] << 9) & (position.BlackPosition & ~bitboardController.files[0] & (ulong)position.enPassant);
+                position.attacks[0] = pawnCaptures;
             }
             else
             {
                 // move forward one         move forward one square         if the position is empty
-                pawnMoves = (position.positions[0] >> 8) & ~(position.WhitePosition & position.BlackPosition);
+                pawnMoves = (position.locations[0] >> 8) & ~(position.WhitePosition & position.BlackPosition);
                 // double move              pieces on the third rank        remove if occupied
                 pawnMoves |= ((pawnMoves & bitboardController.ranks[2]) >> 8) & ~(position.WhitePosition & position.BlackPosition);
                 // pawn captures                                        // remove edge pawns
-                pawnCaptures = (position.positions[0] >> 7) & (position.WhitePosition & ~bitboardController.files[0] & (ulong)position.enPassant);
-                pawnCaptures |= (position.positions[0] >> 9) & (position.WhitePosition & ~bitboardController.files[7] & (ulong)position.enPassant);
+                pawnCaptures = (position.locations[0] >> 7) & (position.WhitePosition & ~bitboardController.files[0] & (ulong)position.enPassant);
+                pawnCaptures |= (position.locations[0] >> 9) & (position.WhitePosition & ~bitboardController.files[7] & (ulong)position.enPassant);
+                position.attacks[6] = pawnCaptures;
             }
 
             #region add moves
@@ -353,103 +355,97 @@ namespace OnionEngine
             ulong rooks;
             ulong queens;
 
-            if (position.side == Color.w)
+            int color = (int)position.side * 6;
+
+
+            bishops = position.locations[2 + color];
+            rooks = position.locations[3 + color];
+            queens = position.locations[4 + color];
+
+            while (bishops > 0)
             {
-                bishops = position.positions[2];
-                rooks = position.positions[3];
-                queens = position.positions[4];
+                Square from = (Square)bitboardController.PopBit(ref bishops);
+                // moves
+                bishopMoves = bitboardController.bishopMoves[(int)from];
+                // captures
+                bishopCaptures = bishopMoves & (position.locations[6 - color] | position.locations[7 - color] | position.locations[8 - color] | position.locations[9 - color] | position.locations[10 - color] | position.locations[11 - color]);
+                // remove captures from moves
+                bishopMoves = bishopMoves ^ bishopCaptures;
+
+                // add moves
+                while (bishopMoves > 0)
+                {
+                    Square to = (Square)bitboardController.PopBit(ref bishopMoves);
+                    // if no piece is between the move
+                    if (!DiagonalIntersect(position, from, to, Piece.wB + color))
+                    {
+                        AddQuiteMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
+                    }
+                }
+                while (bishopCaptures > 0)
+                {
+                    Square to = (Square)bitboardController.PopBit(ref bishopCaptures);
+                    Piece capture = position.pieceTypeBySquare[(int)to];
+                    if (!DiagonalIntersect(position, from, to, Piece.wB + color))
+                    {
+                        AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
+                    }
+                }
             }
-            else
+            while (rooks > 0)
             {
-                bishops = position.positions[8];
-                rooks = position.positions[9];
-                queens = position.positions[10];
+                Square from = (Square)bitboardController.PopBit(ref rooks);
 
-                while (bishops > 0)
+                rookMoves = bitboardController.rookMoves[bitboardController.PopBit(ref rooks)];
+                // attacks
+                rookCaptures = rookMoves & (position.locations[6 - color] | position.locations[7 - color] | position.locations[8 - color] | position.locations[9 - color] | position.locations[10 - color] | position.locations[11 - color]);
+                rookMoves = rookMoves ^ rookCaptures;
+
+                // add moves
+                while (rookMoves > 0)
                 {
-                    Square from = (Square)bitboardController.PopBit(ref bishops);
-                    // moves
-                    bishopMoves = bitboardController.bishopMoves[(int)from];
-                    // captures
-                    bishopCaptures = bishopMoves & position.WhitePosition;
-                    // remove captures from moves
-                    bishopMoves = bishopMoves ^ bishopCaptures;
-
-                    // add moves
-                    while (bishopMoves > 0)
+                    Square to = (Square)bitboardController.PopBit(ref rookMoves);
+                    if (!Intersect(position, from, to, Piece.wR + color))
                     {
-                        Square to = (Square)bitboardController.PopBit(ref bishopMoves);
-                        // if no piece is between the move
-                        if (!DiagonalIntersect(position, from, to))
-                        {
-                            AddQuiteMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
-                        }
-                    }
-                    while (bishopCaptures > 0)
-                    {
-                        Square to = (Square)bitboardController.PopBit(ref bishopCaptures);
-                        Piece capture = position.pieceTypeBySquare[(int)to];
-                        if (!DiagonalIntersect(position, from, to))
-                        {
-                            AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
-                        }
+                        AddQuiteMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                     }
                 }
-                while (rooks > 0)
+                while (rookCaptures > 0)
                 {
-                    Square from = (Square)bitboardController.PopBit(ref rooks);
-
-                    rookMoves = bitboardController.rookMoves[bitboardController.PopBit(ref rooks)];
-                    // attacks
-                    rookCaptures = rookMoves & position.WhitePosition;
-                    rookMoves = rookMoves ^ rookCaptures;
-
-                    // add moves
-                    while (rookMoves > 0)
+                    Square to = (Square)bitboardController.PopBit(ref rookCaptures);
+                    Piece capture = position.pieceTypeBySquare[(int)to];
+                    if (!Intersect(position, from, to, Piece.wR + color))
                     {
-                        Square to = (Square)bitboardController.PopBit(ref rookMoves);
-                        if (!Intersect(position, from, to))
-                        {
-                            AddQuiteMove(move.ToInt(from,to, Piece.EMPTY, Piece.EMPTY));
-                        }
-                    }
-                    while (rookCaptures > 0)
-                    {
-                        Square to = (Square)bitboardController.PopBit(ref rookCaptures);
-                        Piece capture = position.pieceTypeBySquare[(int)to];
-                        if (!Intersect(position, from, to))
-                        {
-                            AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
-                        }
+                        AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
-                while (queens > 0)
+            }
+            while (queens > 0)
+            {
+                Square from = (Square)bitboardController.PopBit(ref queens);
+
+                int square = bitboardController.PopBit(ref queens);
+                queenMoves = bitboardController.rookMoves[square] | bitboardController.bishopMoves[square];
+                //attacks
+                queenCaptures = queenMoves & (position.locations[6 - color] | position.locations[7 - color] | position.locations[8 - color] | position.locations[9 - color] | position.locations[10 - color] | position.locations[11 - color]);
+                queenMoves = queenMoves ^ queenCaptures;
+
+                // add moves
+                while (queenMoves > 0)
                 {
-                    Square from = (Square)bitboardController.PopBit(ref queens);
-
-                    int square = bitboardController.PopBit(ref queens);
-                    queenMoves = bitboardController.rookMoves[square] | bitboardController.bishopMoves[square];
-                    //attacks
-                    queenCaptures = queenMoves & position.WhitePosition;
-                    queenMoves = queenMoves ^ queenCaptures;
-
-                    // add moves
-                    while (queenMoves > 0)
+                    Square to = (Square)bitboardController.PopBit(ref queenMoves);
+                    if (!Intersect(position, from, to, Piece.wQ + color))
                     {
-                        Square to = (Square)bitboardController.PopBit(ref queenMoves);
-                        if (!Intersect(position, from, to))
-                        {
-                            AddQuiteMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
-                        }
+                        AddQuiteMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                     }
-                    while (queenCaptures > 0)
+                }
+                while (queenCaptures > 0)
+                {
+                    Square to = (Square)bitboardController.PopBit(ref queenCaptures);
+                    Piece capture = position.pieceTypeBySquare[(int)to];
+                    if (!Intersect(position, from, to, Piece.wQ + color))
                     {
-                        Square to = (Square)bitboardController.PopBit(ref queenCaptures);
-                        Piece capture = position.pieceTypeBySquare[(int)to];
-                        if (!Intersect(position, from, to))
-                        {
-                            AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
-                        }
+                        AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
             }
@@ -775,7 +771,7 @@ namespace OnionEngine
             return legalMoves.ToArray();
         }
 
-        
+
 
         public void PrintLegalMoves()
         {
@@ -784,109 +780,129 @@ namespace OnionEngine
                 Console.WriteLine(move.PrintMove(legalMoves[i]));
             }
         }
-        public bool IsSquareAttacked(Square square, Color attackingSide, Position position)
+        public bool IsSquareAttacked(Position position, Square square, Color attackingSide)
         {
-            if (attackingSide == Color.w)
+            #region old check
+            //if (attackingSide == Color.w)
+            //{
+            //    // is there a pawn attacking this square
+            //    if (position.pieceTypeBySquare[((int)square) - 11] == Piece.wP ||
+            //        position.pieceTypeBySquare[((int)square) - 9] == Piece.wP)
+            //    {
+            //        return true;
+            //    }
+            //}
+            //else
+            //{
+            //    if (position.pieceTypeBySquare[((int)square) + 11] == Piece.bP ||
+            //        position.pieceTypeBySquare[((int)square) + 9] == Piece.bP)
+            //    {
+            //        return true;
+            //    }
+            //}
+
+            //// check for a knight in proper directions
+            //foreach (int direction in C_KnightDirection)
+            //{
+            //    Piece piece = position.pieceTypeBySquare[((int)square) + direction];
+            //    if (piece == Piece.wN && attackingSide == Color.w)
+            //    {
+            //        return true;
+            //    }
+            //    else if (piece == Piece.bN && attackingSide == Color.b)
+            //    {
+            //        return true;
+            //    }
+            //}
+
+            //// check for rook or queen
+            //foreach (int direction in C_RookDirection)
+            //{
+            //    Piece piece = position.pieceTypeBySquare[((int)square) + direction];
+            //    int i = direction;
+            //    // is it a valid square?
+            //    while (piece != Piece.INVALID)
+            //    {
+            //        // is there a piece on this square
+            //        if (piece != Piece.EMPTY)
+            //        {
+            //            // is it the correct piece
+            //            if ((piece == Piece.wR || piece == Piece.wQ) && attackingSide == Color.w)
+            //            {
+            //                return true;
+            //            }
+            //            else if ((piece == Piece.bR || piece == Piece.bQ) && attackingSide == Color.b)
+            //            {
+            //                return true;
+            //            }
+            //            break; // stop searching in this direction because a piece would be blocking this direction
+            //        }
+            //        i += direction;
+            //        piece = position.pieceTypeBySquare[((int)square) + i];
+            //    }
+            //}
+
+            //// bishop or queen
+            //foreach (int direction in C_BishoptDirection)
+            //{
+            //    Piece piece = position.pieceTypeBySquare[((int)square) + direction];
+            //    int i = direction;
+            //    // is it a valid square?
+            //    while (piece != Piece.INVALID)
+            //    {
+            //        // is there a piece on this square
+            //        if (piece != Piece.EMPTY)
+            //        {
+            //            // is it the correct piece
+            //            if ((piece == Piece.wB || piece == Piece.wQ) && attackingSide == Color.w)
+            //            {
+            //                return true;
+            //            }
+            //            else if ((piece == Piece.bB || piece == Piece.bQ) && attackingSide == Color.b)
+            //            {
+            //                return true;
+            //            }
+            //            break; // stop searching in this direction because a piece would be blocking this direction
+            //        }
+            //        i += direction;
+            //        piece = position.pieceTypeBySquare[((int)square) + i];
+            //    }
+            //}
+
+            //// king
+            //foreach (int direction in C_KingDirection)
+            //{
+            //    Piece piece = position.pieceTypeBySquare[((int)square) + direction];
+
+            //    if (piece == Piece.wK && attackingSide == Color.w)
+            //    {
+            //        return true;
+            //    }
+            //    else if (piece == Piece.bK && attackingSide == Color.b)
+            //    {
+            //        return true;
+            //    }
+
+            //}
+            #endregion
+
+            int color = (int)position.side * 6;
+
+            // each piece type
+
+            // knight
+            if ((bitboardController.knightMoves[(int)square] & position.locations[1 + color]) > 0)
             {
-                // is there a pawn attacking this square
-                if (position.pieceTypeBySquare[((int)square) - 11] == Piece.wP ||
-                    position.pieceTypeBySquare[((int)square) - 9] == Piece.wP)
-                {
-                    return true;
-                }
+                return true;
             }
-            else
+            else if (((position.locations[0 + color] >> 7) & position.locations[0 + color]) > 0)
             {
-                if (position.pieceTypeBySquare[((int)square) + 11] == Piece.bP ||
-                    position.pieceTypeBySquare[((int)square) + 9] == Piece.bP)
-                {
-                    return true;
-                }
+
             }
 
-            // check for a knight in proper directions
-            foreach (int direction in C_KnightDirection)
-            {
-                Piece piece = position.pieceTypeBySquare[((int)square) + direction];
-                if (piece == Piece.wN && attackingSide == Color.w)
-                {
-                    return true;
-                }
-                else if (piece == Piece.bN && attackingSide == Color.b)
-                {
-                    return true;
-                }
-            }
 
-            // check for rook or queen
-            foreach (int direction in C_RookDirection)
-            {
-                Piece piece = position.pieceTypeBySquare[((int)square) + direction];
-                int i = direction;
-                // is it a valid square?
-                while (piece != Piece.INVALID)
-                {
-                    // is there a piece on this square
-                    if (piece != Piece.EMPTY)
-                    {
-                        // is it the correct piece
-                        if ((piece == Piece.wR || piece == Piece.wQ) && attackingSide == Color.w)
-                        {
-                            return true;
-                        }
-                        else if ((piece == Piece.bR || piece == Piece.bQ) && attackingSide == Color.b)
-                        {
-                            return true;
-                        }
-                        break; // stop searching in this direction because a piece would be blocking this direction
-                    }
-                    i += direction;
-                    piece = position.pieceTypeBySquare[((int)square) + i];
-                }
-            }
 
-            // bishop or queen
-            foreach (int direction in C_BishoptDirection)
-            {
-                Piece piece = position.pieceTypeBySquare[((int)square) + direction];
-                int i = direction;
-                // is it a valid square?
-                while (piece != Piece.INVALID)
-                {
-                    // is there a piece on this square
-                    if (piece != Piece.EMPTY)
-                    {
-                        // is it the correct piece
-                        if ((piece == Piece.wB || piece == Piece.wQ) && attackingSide == Color.w)
-                        {
-                            return true;
-                        }
-                        else if ((piece == Piece.bB || piece == Piece.bQ) && attackingSide == Color.b)
-                        {
-                            return true;
-                        }
-                        break; // stop searching in this direction because a piece would be blocking this direction
-                    }
-                    i += direction;
-                    piece = position.pieceTypeBySquare[((int)square) + i];
-                }
-            }
 
-            // king
-            foreach (int direction in C_KingDirection)
-            {
-                Piece piece = position.pieceTypeBySquare[((int)square) + direction];
-
-                if (piece == Piece.wK && attackingSide == Color.w)
-                {
-                    return true;
-                }
-                else if (piece == Piece.bK && attackingSide == Color.b)
-                {
-                    return true;
-                }
-
-            }
 
             return false;
         }

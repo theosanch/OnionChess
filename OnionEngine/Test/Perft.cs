@@ -8,8 +8,8 @@ namespace OnionEngine
 {
     class Perft
     {
-        PositionController board = new PositionController();
-        MoveGenerator moveGenerator = new MoveGenerator();
+        PositionController board;
+        MoveGenerator moveGenerator;
         MoveController moveController = new MoveController();
 
         ulong key;
@@ -18,9 +18,10 @@ namespace OnionEngine
 
 
 
-        public Perft()
+        public Perft(BitBoards bitboard)
         {
-
+            board = new PositionController(bitboard);
+            moveGenerator = new MoveGenerator(bitboard);
         }
 
         private ulong TestPosition(ref Position position, int depth)
