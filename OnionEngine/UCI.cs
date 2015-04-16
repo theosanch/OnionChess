@@ -18,7 +18,7 @@ namespace OnionEngine
             //Console.WriteLine("id name Onion 0.1");
             //Console.WriteLine("id author Theodore J. Sanchez");
 
-            Console.WriteLine("uci ok");
+            Console.WriteLine("Onion v0.0.8 by Theodore J. Sanchez");
 
             while (true)
             {

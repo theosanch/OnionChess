@@ -27,7 +27,7 @@ namespace OnionEngine
         // what ply is this move at
         public int ply;
 
-        
+
         #endregion
 
         #region piece information
@@ -41,30 +41,24 @@ namespace OnionEngine
         // how many of each piece type?
         public int[] pieceNumber = new int[13];
 
-        // bit-board location
-        public ulong[] pawnBitBoard = new ulong[3];
-
-        /// <summary>
-        /// bitboard location for each piece type
-        /// </summary>
+        // location and attacks of each piece type
         public ulong[] locations = new ulong[12];
         public ulong[] attacks = new ulong[12];
 
-        public ulong WhitePosition 
-        { 
+        public ulong WhitePosition
+        {
             get
             {
-                return locations[0] | locations[1] | locations[2] | locations[3] | locations[4] | locations[5]; 
+                return locations[0] | locations[1] | locations[2] | locations[3] | locations[4] | locations[5];
             }
         }
         public ulong BlackPosition
         {
             get
             {
-                return locations[6] | locations[7] | locations[8] | locations[9] | locations[10] | locations[11]; 
+                return locations[6] | locations[7] | locations[8] | locations[9] | locations[10] | locations[11];
             }
         }
-
 
         public int[] materialScore = new int[2];
 
@@ -72,49 +66,53 @@ namespace OnionEngine
 
         public Position()
         {
-            
+
         }
         public Position(Position position)
         {
 
         }
-        
+
 
         // when searching through different moves a copy of the previous move is needed
         public Position Clone()
         {
             // this copies all value types
-            Position results = (Position) this.MemberwiseClone(); // "this" used just for clarity
+            Position results = (Position)this.MemberwiseClone(); // "this" used just for clarity
 
             results.pieceTypeBySquare = new Piece[64];
+            results.pieceSquareByType = new Square[13, 10];
             results.pieceNumber = new int[13];
-            results.pawnBitBoard = new ulong[3];
+
             results.materialScore = new int[2];
-            results.pieceSquareByType = new Square[13,10];
+
+            results.locations = new ulong[12];
+            results.attacks = new ulong[12];
 
             // ref type copying - arrays are ref type
             for (int i = 0; i < 64; i++)
             {
                 results.pieceTypeBySquare[i] = this.pieceTypeBySquare[i];
 
-                if (i<13)
+                if (i < 13)
                 {
                     results.pieceNumber[i] = this.pieceNumber[i];
 
-                    if (i < 3)
+                    if (i < 2)
                     {
-                        results.pawnBitBoard[i] = this.pawnBitBoard[i];
-
-                        if (i<2)
-                        {
-                            results.materialScore[i] = this.materialScore[i];
-                        }
+                        results.materialScore[i] = this.materialScore[i];
                     }
 
                     // [13,10] array
                     for (int n = 0; n < 10; n++)
                     {
-                        results.pieceSquareByType[i,n] = this.pieceSquareByType[i,n];
+                        results.pieceSquareByType[i, n] = this.pieceSquareByType[i, n];
+                    }
+
+                    if (i<12)
+                    {
+                        results.locations[i] = this.locations[i];
+                        results.attacks[i] = this.attacks[i];
                     }
                 }
             }

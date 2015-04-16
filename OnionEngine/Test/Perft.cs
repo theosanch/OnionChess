@@ -106,7 +106,7 @@ namespace OnionEngine
 
             Console.WriteLine("Perft Test Complete - Total nodes:" + leafNodes.ToString("n"));
             TimeSpan elapsed = (DateTime.Now - start);
-            Console.WriteLine(string.Format("Time: {0}:{1}:{2}", elapsed.Hours, elapsed.Minutes, elapsed.Seconds));
+            Console.WriteLine(string.Format("Time: {0}:{1}:{2}:{3}", elapsed.Hours, elapsed.Minutes, elapsed.Seconds,elapsed.Milliseconds));
 
             return leafNodes;
         }

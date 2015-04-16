@@ -315,7 +315,7 @@ namespace OnionEngine
             // the first 6 values help with bit shifts
             // 6 and 7 help with double move rank detection
             // 8 and 9 help with capture shift wrapping
-            int[] shiftValues = { 8, 64 - 8, 7, 64 - 9, 9, 64 - 7, 2, 4, 7, 0 };
+            int[] shiftValues = { 8, 64 - 8, 7, 64 - 9, 9, 64 - 7, 2, 5, 7, 0,-8,8,-16,16 };
 
             // will equal 6(black) or 0(white). 
             // this eliminates the need of having to use if statements because all black pieces are +6 in their respective arrays
@@ -341,14 +341,14 @@ namespace OnionEngine
             while (pawnMoves != 0)
             {
                 Square to = (Square)bitboardController.PopBit(ref pawnMoves);
-                Square from = to - 8;
+                Square from = to + shiftValues[10 + (int)position.side];
 
                 AddPawnMove(from, to, (int)position.side);
             }
             while (pawnDoubleMoves != 0)
             {
                 Square to = (Square)bitboardController.PopBit(ref pawnDoubleMoves);
-                Square from = to - 16;
+                Square from = to + shiftValues[12 + (int)position.side];
 
                 AddDoubleMove(move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY, 3));
             }
