@@ -36,10 +36,10 @@ namespace OnionEngine
         // track location of each piece in a single list. 
         // 13: each piece type including empty.
         // 10: up to ten pieces for that type.
-        public Square[,] pieceSquareByType = new Square[13, 10]; // needs to be initialized inside reset board method
+        public Square[,] pieceSquareByType = new Square[12, 10]; // needs to be initialized inside reset board method
 
         // how many of each piece type?
-        public int[] pieceNumber = new int[13];
+        public int[] pieceNumber = new int[12];
 
         // location and attacks of each piece type
         public ulong[] locations = new ulong[12];
@@ -81,8 +81,8 @@ namespace OnionEngine
             Position results = (Position)this.MemberwiseClone(); // "this" used just for clarity
 
             results.pieceTypeBySquare = new Piece[64];
-            results.pieceSquareByType = new Square[13, 10];
-            results.pieceNumber = new int[13];
+            results.pieceSquareByType = new Square[12, 10];
+            results.pieceNumber = new int[12];
 
             results.materialScore = new int[2];
 
@@ -94,7 +94,7 @@ namespace OnionEngine
             {
                 results.pieceTypeBySquare[i] = this.pieceTypeBySquare[i];
 
-                if (i < 13)
+                if (i < 12)
                 {
                     results.pieceNumber[i] = this.pieceNumber[i];
 
@@ -109,11 +109,11 @@ namespace OnionEngine
                         results.pieceSquareByType[i, n] = this.pieceSquareByType[i, n];
                     }
 
-                    if (i<12)
-                    {
-                        results.locations[i] = this.locations[i];
-                        results.attacks[i] = this.attacks[i];
-                    }
+
+
+                    results.locations[i] = this.locations[i];
+                    results.attacks[i] = this.attacks[i];
+
                 }
             }
 

@@ -313,9 +313,13 @@ namespace OnionEngine
 
             // a helper to eliminate if statements
             // the first 6 values help with bit shifts
-            // 6 and 7 help with double move rank detection
+            
             // 8 and 9 help with capture shift wrapping
-            int[] shiftValues = { 8, 64 - 8, 7, 64 - 9, 9, 64 - 7, 2, 5, 7, 0,-8,8,-16,16 };
+            int[] shiftValues = { 8, 64 - 8, 7, 64 - 9, 9, 64 - 7,
+                                  2, 5,         // 6 and 7 help with double move rank detection
+                                  7, 0,         // A file or H file for side attacks
+                                  -8,8,-16,16,  // move direction
+                                   7,-9,9,-7};  // attack direction
 
             // will equal 6(black) or 0(white). 
             // this eliminates the need of having to use if statements because all black pieces are +6 in their respective arrays
@@ -331,8 +335,8 @@ namespace OnionEngine
             // double move              pieces on the third rank        remove if occupied
             pawnDoubleMoves |= CircularLeftShift(pawnMoves & bitboardController.ranks[shiftValues[(int)position.side + 6]], shiftValues[(int)position.side]) & ~(friendlyLocations & enemyLocations);
             // pawn captures                                        remove proper edge pawns and add en passant
-            pawnLeftCaptures = CircularLeftShift(position.locations[color] & ~bitboardController.files[shiftValues[(int)position.side + 8]], shiftValues[(int)position.side + 2]) & (enemyLocations | bitboardController.SquareToBit((int)position.enPassant));
-            pawnRightCaptures = CircularLeftShift(position.locations[color] & ~bitboardController.files[shiftValues[(1 - (int)position.side) + 8]], shiftValues[(int)position.side + 4]) & (enemyLocations | bitboardController.SquareToBit((int)position.enPassant));
+            pawnLeftCaptures = CircularLeftShift(position.locations[color] & ~bitboardController.files[0], shiftValues[(int)position.side + 2]) & (enemyLocations | bitboardController.SquareToBit((int)position.enPassant));
+            pawnRightCaptures = CircularLeftShift(position.locations[color] & ~bitboardController.files[7], shiftValues[(int)position.side + 4]) & (enemyLocations | bitboardController.SquareToBit((int)position.enPassant));
 
             position.attacks[color] = pawnLeftCaptures | pawnRightCaptures;
 
@@ -355,14 +359,14 @@ namespace OnionEngine
             while (pawnLeftCaptures != 0)
             {
                 Square to = (Square)bitboardController.PopBit(ref pawnLeftCaptures);
-                Square from = to - (((int)position.side * 2) + 7);
+                Square from = to - (shiftValues[(int)position.side + 14]);
 
                 AddPawnCapture(from, to, position.pieceTypeBySquare[(int)to], (int)position.side);
             }
             while (pawnRightCaptures != 0)
             {
                 Square to = (Square)bitboardController.PopBit(ref pawnRightCaptures);
-                Square from = to - (9 - ((int)position.side * 2));
+                Square from = to - (shiftValues[(int)position.side + 16]);
 
                 AddPawnCapture(from, to, position.pieceTypeBySquare[(int)to], (int)position.side);
             }
@@ -528,8 +532,6 @@ namespace OnionEngine
                     AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                 }
             }
-
-
             #endregion
             #endregion
 
@@ -851,8 +853,6 @@ namespace OnionEngine
             return legalMoves.ToArray();
         }
 
-
-
         public void PrintLegalMoves()
         {
             for (int i = 0; i < moveCount; i++)
@@ -1014,7 +1014,5 @@ namespace OnionEngine
         //    }
         //    Console.WriteLine("");
         //}
-
-
     }
 }
