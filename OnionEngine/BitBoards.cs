@@ -146,13 +146,9 @@ namespace OnionEngine
         }
         private void InitBishopMoves()
         {
-
             for (int i = 0; i < 64; i++)
             {
-
                 bishopMoves[i] = (diagonalsNE[SQ64toDNE[i]] ^ diagonalsSW[SQ64toDSW[i]]);
-
-
             }
         }
         private void InitRookMoves()
@@ -160,9 +156,7 @@ namespace OnionEngine
             int rank = 0, file = 0;
             for (int i = 0; i < 64; i++)
             {
-
                 rookMoves[i] = (ranks[rank] ^ files[file]);
-
                 if (file < 7)
                 {
                     file++;
@@ -231,23 +225,24 @@ namespace OnionEngine
             }
         }
 
+        // include destination square and don't include start square
         private void InitIntersectLines()
         {
-            for (int squareA = 0; squareA < 64; squareA++)
+            for (int from = 0; from < 64; from++)
             {
-                for (int squareB = 0; squareB < 64; squareB++)
+                for (int to = 0; to < 64; to++)
                 {
                     ulong results = 0UL;
                     int low, high;
-                    if (squareA > squareB)
+                    if (from > to)
                     {
-                        high = squareA;
-                        low = squareB;
+                        high = from;
+                        low = to;
                     }
                     else
                     {
-                        high = squareB;
-                        low = squareA;
+                        high = to;
+                        low = from;
                     }
 
                     // left bit shift by 3 conveniently gives us the 0-7 rank given a 0-63 square number
@@ -257,55 +252,55 @@ namespace OnionEngine
                     //int file = 0 & 7;
 
                     // same rank
-                    if ((squareA >> 3) == (squareB >> 3))
+                    if ((from >> 3) == (to >> 3))
                     {
-                        high--; // minus one first so the destination square is not included
+                        //high--; // minus one first so the destination square is not included
                         while (high > low)
                         {
-                            results |= ranks[squareA >> 3] & files[high & 7];
+                            results |= ranks[from >> 3] & files[high & 7];
                             high--;
                         }
 
-                        intersectLines[squareA, squareB] = results;
+                        intersectLines[from, to] = results;
                         continue;
                     }
                     // same file
-                    else if ((squareA & 7) == (squareB & 7))
+                    else if ((from & 7) == (to & 7))
                     {
-                        high -= 8; // minus one first so the destination square is not included
+                        //high -= 8; // minus one first so the destination square is not included
                         while (high > low)
                         {
-                            results |= files[squareA & 7] & ranks[high >> 3];
+                            results |= files[from & 7] & ranks[high >> 3];
                             high -= 8;
                         }
 
-                        intersectLines[squareA, squareB] = results;
+                        intersectLines[from, to] = results;
                         continue;
                     }
                     // diagonal
-                    else if (SQ64toDSW[squareA] == SQ64toDSW[squareB])
+                    else if (SQ64toDSW[from] == SQ64toDSW[to])
                     {
-                        high -= 9; // minus one first so the destination square is not included
+                        //high -= 9; // minus one first so the destination square is not included
                         while (high > low)
                         {
-                            results |= diagonalsSW[SQ64toDSW[squareA]] & ranks[high >> 3];
+                            results |= diagonalsSW[SQ64toDSW[from]] & ranks[high >> 3];
                             high -= 9;
                         }
-                        intersectLines[squareA, squareB] = results;
+                        intersectLines[from, to] = results;
                         continue;
                     }
-                    else if (SQ64toDNE[squareA] == SQ64toDNE[squareB])
+                    else if (SQ64toDNE[from] == SQ64toDNE[to])
                     {
-                        high -= 7; // minus one first so the destination square is not included
+                       // high -= 7; // minus one first so the destination square is not included
                         while (high > low)
                         {
-                            results |= diagonalsNE[SQ64toDNE[squareA]] & ranks[high >> 3];
+                            results |= diagonalsNE[SQ64toDNE[from]] & ranks[high >> 3];
                             high -= 7;
                         }
-                        intersectLines[squareA, squareB] = results;
+                        intersectLines[from, to] = results;
                         continue;
                     }
-                    intersectLines[squareA, squareB] = 0UL;
+                    intersectLines[from, to] = 0UL;
                 }
 
             }
