@@ -43,7 +43,7 @@ namespace OnionEngine
 
         // location and attacks of each piece type
         public ulong[] locations = new ulong[12];
-        public ulong[] attacks = new ulong[12];
+        public ulong[] attacks = new ulong[14];
 
         public ulong WhitePosition
         {
@@ -87,12 +87,16 @@ namespace OnionEngine
             results.materialScore = new int[2];
 
             results.locations = new ulong[12];
-            results.attacks = new ulong[12];
+            results.attacks = new ulong[14];
 
             // ref type copying - arrays are ref type
             for (int i = 0; i < 64; i++)
             {
                 results.pieceTypeBySquare[i] = this.pieceTypeBySquare[i];
+                if (i < 14)
+                {
+                    results.attacks[i] = this.attacks[i];
+                }
 
                 if (i < 12)
                 {
@@ -112,7 +116,6 @@ namespace OnionEngine
 
 
                     results.locations[i] = this.locations[i];
-                    results.attacks[i] = this.attacks[i];
 
                 }
             }

@@ -313,7 +313,7 @@ namespace OnionEngine
 
             // a helper to eliminate if statements
             // the first 6 values help with bit shifts
-            
+
             // 8 and 9 help with capture shift wrapping
             int[] shiftValues = { 8, 64 - 8, 7, 64 - 9, 9, 64 - 7,
                                   2, 5,         // 6 and 7 help with double move rank detection
@@ -331,7 +331,7 @@ namespace OnionEngine
             #region pawn moves
             // move forward one         move forward one square         if the position is empty
 
-            pawnMoves = CircularLeftShift(position.locations[color], shiftValues[(int)position.side]) & ~(friendlyLocations & enemyLocations);
+            pawnMoves = CircularLeftShift(position.locations[color], shiftValues[(int)position.side]) & ~(friendlyLocations | enemyLocations);
             // double move              pieces on the third rank        remove if occupied
             pawnDoubleMoves |= CircularLeftShift(pawnMoves & bitboardController.ranks[shiftValues[(int)position.side + 6]], shiftValues[(int)position.side]) & ~(friendlyLocations & enemyLocations);
             // pawn captures                                        remove proper edge pawns and add en passant
@@ -339,6 +339,7 @@ namespace OnionEngine
             pawnRightCaptures = CircularLeftShift(position.locations[color] & ~bitboardController.files[7], shiftValues[(int)position.side + 4]) & (enemyLocations | bitboardController.SquareToBit((int)position.enPassant));
 
             position.attacks[color] = pawnLeftCaptures | pawnRightCaptures;
+            position.attacks[12 + (int)position.side] |= pawnLeftCaptures | pawnRightCaptures;
 
             #region add moves
 
@@ -388,7 +389,10 @@ namespace OnionEngine
                 // captures
                 bishopCaptures = bishopMoves & enemyLocations;
                 // remove captures from moves
-                bishopMoves = bishopMoves ^ bishopCaptures;
+                bishopMoves = bishopMoves ^ (bishopCaptures);
+                // remove friendly
+                bishopMoves = bishopMoves & ~friendlyLocations;
+
 
                 // add moves
                 while (bishopMoves > 0)
@@ -408,6 +412,7 @@ namespace OnionEngine
                     if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == bitboardController.SquareToBit((int)to))
                     {
                         position.attacks[2 + color] |= bitboardController.SquareToBit((int)to);
+                        position.attacks[12 + (int)position.side] |= bitboardController.SquareToBit((int)to);
                         AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
@@ -419,7 +424,10 @@ namespace OnionEngine
                 rookMoves = bitboardController.rookMoves[(int)from];
                 // attacks
                 rookCaptures = rookMoves & enemyLocations;
-                rookMoves = rookMoves ^ rookCaptures;
+                rookMoves = rookMoves ^ (rookCaptures);
+
+                rookMoves = rookMoves & ~friendlyLocations;
+
 
                 // add moves
                 while (rookMoves > 0)
@@ -437,6 +445,7 @@ namespace OnionEngine
                     if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == bitboardController.SquareToBit((int)to))
                     {
                         position.attacks[3 + color] |= bitboardController.SquareToBit((int)to);
+                        position.attacks[12 + (int)position.side] |= bitboardController.SquareToBit((int)to);
                         AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
@@ -448,7 +457,11 @@ namespace OnionEngine
                 queenMoves = bitboardController.rookMoves[(int)from] | bitboardController.bishopMoves[(int)from];
                 //attacks
                 queenCaptures = queenMoves & enemyLocations;
-                queenMoves = queenMoves ^ queenCaptures;
+                queenMoves = queenMoves ^ (queenCaptures);
+
+                queenMoves = queenMoves & ~friendlyLocations;
+
+
 
                 // add moves
                 while (queenMoves > 0)
@@ -466,6 +479,7 @@ namespace OnionEngine
                     if ((bitboardController.intersectLines[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == bitboardController.SquareToBit((int)to))
                     {
                         position.attacks[4 + color] |= bitboardController.SquareToBit((int)to);
+                        position.attacks[12 + (int)position.side] |= bitboardController.SquareToBit((int)to);
                         AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
@@ -485,9 +499,37 @@ namespace OnionEngine
                 // captures
                 kingCaptures = kingMoves & enemyLocations;
                 // remove captures 
-                kingMoves = kingMoves ^ kingCaptures;
+                kingMoves = kingMoves ^ (kingCaptures);
                 // remove friendly
                 kingMoves = kingMoves & ~friendlyLocations;
+
+                #region castle logic
+                // castle move
+                if (position.castlePerm != 0)
+                {
+                    int[] colorKey = { 1,2,4,8,     // castle values
+                                       4,60,6,62,   // from and to squares for black and white
+                                        1,57};
+                    // king side
+                    // if this castle is still available
+                    if ((position.castlePerm & colorKey[(int)position.side]) > 0)
+                    {
+                        if ((bitboardController.intersectLines[colorKey[(int)position.side + 4], colorKey[(int)position.side + 6]] & (enemyLocations | friendlyLocations)) == 0)
+                        {
+                            AddQuiteMove(move.ToInt(from, (Square)colorKey[(int)position.side + 6], Piece.EMPTY, Piece.EMPTY, 2));
+                        }
+
+                    }
+                    // queen side
+                    if ((position.castlePerm & colorKey[(int)position.side + 2]) > 0)
+                    {
+                        if ((bitboardController.intersectLines[colorKey[(int)position.side + 4], colorKey[(int)position.side + 8]] & (enemyLocations | friendlyLocations)) == 0)
+                        {
+                            AddQuiteMove(move.ToInt(from, (Square)(colorKey[(int)position.side + 6] + 1), Piece.EMPTY, Piece.EMPTY, 2));
+                        }
+                    }
+                }
+                #endregion
 
                 // add moves
                 while (kingMoves > 0)
@@ -501,6 +543,7 @@ namespace OnionEngine
                     Piece capture = position.pieceTypeBySquare[(int)to];
 
                     position.attacks[5 + color] |= bitboardController.SquareToBit((int)to);
+                    position.attacks[12 + (int)position.side] |= bitboardController.SquareToBit((int)to);
                     AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                 }
             }
@@ -517,6 +560,8 @@ namespace OnionEngine
                 // remove friendly
                 knightMoves = knightMoves & ~friendlyLocations;
 
+
+
                 // add moves
                 while (knightMoves > 0)
                 {
@@ -529,6 +574,7 @@ namespace OnionEngine
                     Piece capture = position.pieceTypeBySquare[(int)to];
 
                     position.attacks[1 + color] |= bitboardController.SquareToBit((int)to);
+                    position.attacks[12 + (int)position.side] |= bitboardController.SquareToBit((int)to);
                     AddCaptureMove(move.ToInt(from, to, capture, Piece.EMPTY));
                 }
             }
@@ -966,23 +1012,24 @@ namespace OnionEngine
             //}
             #endregion
 
-            int color = (int)position.side * 6;
+            int color = (int)attackingSide * 6;
 
             // each piece type
 
             // knight
-            if ((bitboardController.knightMoves[(int)square] & position.locations[1 + color]) > 0)
+            //if ((bitboardController.knightMoves[(int)square] & position.locations[1 + color]) > 0)
+            //{
+            //    return true;
+            //}
+            //else if (((position.locations[0 + color] >> 7) & position.locations[0 + color]) > 0)
+            //{
+
+            //}
+
+            if (((position.attacks[12 + (color / 6)]) & bitboardController.SquareToBit((int)square)) != 0)
             {
                 return true;
             }
-            else if (((position.locations[0 + color] >> 7) & position.locations[0 + color]) > 0)
-            {
-
-            }
-
-
-
-
 
             return false;
         }
