@@ -333,7 +333,7 @@ namespace OnionEngine
 
             pawnMoves = CircularLeftShift(position.locations[color], shiftValues[(int)position.side]) & ~(friendlyLocations | enemyLocations);
             // double move              pieces on the third rank        remove if occupied
-            pawnDoubleMoves |= CircularLeftShift(pawnMoves & bitboardController.ranks[shiftValues[(int)position.side + 6]], shiftValues[(int)position.side]) & ~(friendlyLocations & enemyLocations);
+            pawnDoubleMoves |= CircularLeftShift(pawnMoves & bitboardController.ranks[shiftValues[(int)position.side + 6]], shiftValues[(int)position.side]) & ~(friendlyLocations | enemyLocations);
             // pawn captures                                        remove proper edge pawns and add en passant
             pawnLeftCaptures = CircularLeftShift(position.locations[color] & ~bitboardController.files[0], shiftValues[(int)position.side + 2]) & (enemyLocations | bitboardController.SquareToBit((int)position.enPassant));
             pawnRightCaptures = CircularLeftShift(position.locations[color] & ~bitboardController.files[7], shiftValues[(int)position.side + 4]) & (enemyLocations | bitboardController.SquareToBit((int)position.enPassant));
@@ -516,6 +516,7 @@ namespace OnionEngine
                     {
                         if ((bitboardController.intersectLines[colorKey[(int)position.side + 4], colorKey[(int)position.side + 6]] & (enemyLocations | friendlyLocations)) == 0)
                         {
+                            Square to = (Square)(colorKey[(int)position.side + 6]);
                             AddQuiteMove(move.ToInt(from, (Square)colorKey[(int)position.side + 6], Piece.EMPTY, Piece.EMPTY, 2));
                         }
 
@@ -525,7 +526,8 @@ namespace OnionEngine
                     {
                         if ((bitboardController.intersectLines[colorKey[(int)position.side + 4], colorKey[(int)position.side + 8]] & (enemyLocations | friendlyLocations)) == 0)
                         {
-                            AddQuiteMove(move.ToInt(from, (Square)(colorKey[(int)position.side + 6] + 1), Piece.EMPTY, Piece.EMPTY, 2));
+                            Square to = (Square)(colorKey[(int)position.side + 8] + 1);
+                            AddQuiteMove(move.ToInt(from, (Square)(colorKey[(int)position.side + 8] + 1), Piece.EMPTY, Piece.EMPTY, 2));
                         }
                     }
                 }
@@ -1014,19 +1016,7 @@ namespace OnionEngine
 
             int color = (int)attackingSide * 6;
 
-            // each piece type
-
-            // knight
-            //if ((bitboardController.knightMoves[(int)square] & position.locations[1 + color]) > 0)
-            //{
-            //    return true;
-            //}
-            //else if (((position.locations[0 + color] >> 7) & position.locations[0 + color]) > 0)
-            //{
-
-            //}
-
-            if (((position.attacks[12 + (color / 6)]) & bitboardController.SquareToBit((int)square)) != 0)
+            if (((position.attacks[12 + ((int)attackingSide)]) & bitboardController.SquareToBit((int)square)) != 0)
             {
                 return true;
             }

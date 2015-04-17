@@ -64,7 +64,7 @@ namespace OnionEngine
                 }
                 else if (command[0] == "test")
                 {
-                    brain.Test();
+                    brain.Test(int.Parse(command[1]));
                 }
             }
         }
@@ -85,16 +85,12 @@ namespace OnionEngine
                 i = 9;
             }
 
-            // parse any moves that have been made past the initial position
-            //for (i = i + 0; i < command.Length; i++)
-            //{
-            //    board.MakeMove(ref position, moveController.ParseMove(position,command[i]));
-            //    position.ply = 0;
-            //}
-
-
-            //board.PrintPosition(position);
+            //parse any moves that have been made past the initial position
+            for (i = i + 0; i < command.Length; i++)
+            {
+                brain.MakeMove(command[i]);
+                
+            }
         }
-
     }
 }

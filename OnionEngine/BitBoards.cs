@@ -233,16 +233,16 @@ namespace OnionEngine
                 for (int to = 0; to < 64; to++)
                 {
                     ulong results = 0UL;
-                    int low, high;
+                    int start, finish;
                     if (from > to)
                     {
-                        high = from;
-                        low = to;
+                        start = from;
+                        finish = to;
                     }
                     else
                     {
-                        high = to;
-                        low = from;
+                        start = to;
+                        finish = from;
                     }
 
                     // left bit shift by 3 conveniently gives us the 0-7 rank given a 0-63 square number
@@ -254,49 +254,47 @@ namespace OnionEngine
                     // same rank
                     if ((from >> 3) == (to >> 3))
                     {
-                        //high--; // minus one first so the destination square is not included
-                        while (high > low)
+                        while (start >= finish )
                         {
-                            results |= ranks[from >> 3] & files[high & 7];
-                            high--;
+                            results |= ranks[finish >> 3] & files[start & 7];
+                            start--;
                         }
-
+                        results &= ~SquareToBit(from);
                         intersectLines[from, to] = results;
                         continue;
                     }
                     // same file
                     else if ((from & 7) == (to & 7))
                     {
-                        //high -= 8; // minus one first so the destination square is not included
-                        while (high > low)
+                        while (start >= finish)
                         {
-                            results |= files[from & 7] & ranks[high >> 3];
-                            high -= 8;
+                            results |= files[finish & 7] & ranks[start >> 3];
+                            start -= 8;
                         }
-
+                        results &= ~SquareToBit(from);
                         intersectLines[from, to] = results;
                         continue;
                     }
                     // diagonal
                     else if (SQ64toDSW[from] == SQ64toDSW[to])
                     {
-                        //high -= 9; // minus one first so the destination square is not included
-                        while (high > low)
+                        while (start >= finish)
                         {
-                            results |= diagonalsSW[SQ64toDSW[from]] & ranks[high >> 3];
-                            high -= 9;
+                            results |= diagonalsSW[SQ64toDSW[finish]] & ranks[start >> 3];
+                            start -= 9;
                         }
+                        results &= ~SquareToBit(from);
                         intersectLines[from, to] = results;
                         continue;
                     }
                     else if (SQ64toDNE[from] == SQ64toDNE[to])
                     {
-                       // high -= 7; // minus one first so the destination square is not included
-                        while (high > low)
+                        while (start >= finish)
                         {
-                            results |= diagonalsNE[SQ64toDNE[from]] & ranks[high >> 3];
-                            high -= 7;
+                            results |= diagonalsNE[SQ64toDNE[finish]] & ranks[start >> 3];
+                            start -= 7;
                         }
+                        results &= ~SquareToBit(from);
                         intersectLines[from, to] = results;
                         continue;
                     }

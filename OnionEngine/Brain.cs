@@ -9,8 +9,11 @@ namespace OnionEngine
     class Brain
     {
         PositionController positionController;
-        MoveGenerator moveGen;
+        MoveController moveController;
         BitBoards bitboards;
+
+        MoveGenerator moveGen;
+
         Evaluate evaluation = new Evaluate();
 
         public Position currentPosition;
@@ -27,6 +30,7 @@ namespace OnionEngine
             bitboards = new BitBoards();
             positionController = new PositionController(bitboards);
             moveGen = new MoveGenerator(bitboards);
+            moveController = new MoveController();
 
             currentPosition = positionController.StartPosition();
         }
@@ -66,16 +70,32 @@ namespace OnionEngine
             perft.Test(ref currentPosition,plyDepth);
         }
 
-        public void Test()
+        public void Test(int plyDepth)
         {
+            currentPosition = positionController.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
+            Perft perft = new Perft(bitboards);
 
+            perft.Test(ref currentPosition, plyDepth);
         }
 
 
 
         internal void Go(string[] command)
         {
-            throw new NotImplementedException();
+            Random rng = new Random();
+            int[] moves = moveGen.GenerateAllMoves(currentPosition);
+
+            
+            Console.WriteLine("bestmove " + moveController.PrintMove(moves[rng.Next(moves.Length)]));
+
+        }
+
+        internal void MakeMove(string strMove)
+        {
+            positionController.MakeMove(ref currentPosition, moveController.ParseMove(currentPosition, strMove));
+            currentPosition.ply = 0;
+
+            positionController.PrintPosition(currentPosition);
         }
     }
 }
