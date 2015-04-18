@@ -43,6 +43,9 @@ namespace OnionEngine
 
         // location and attacks of each piece type
         public ulong[] locations = new ulong[12];
+
+        // captures and attacks for each piece type including all for each color
+        public ulong[] captures = new ulong[14];
         public ulong[] attacks = new ulong[14];
 
         public ulong WhitePosition
@@ -68,10 +71,6 @@ namespace OnionEngine
         {
 
         }
-        public Position(Position position)
-        {
-
-        }
 
 
         // when searching through different moves a copy of the previous move is needed
@@ -87,6 +86,7 @@ namespace OnionEngine
             results.materialScore = new int[2];
 
             results.locations = new ulong[12];
+            results.captures = new ulong[14];
             results.attacks = new ulong[14];
 
             // ref type copying - arrays are ref type
@@ -95,6 +95,7 @@ namespace OnionEngine
                 results.pieceTypeBySquare[i] = this.pieceTypeBySquare[i];
                 if (i < 14)
                 {
+                    results.captures[i] = this.captures[i];
                     results.attacks[i] = this.attacks[i];
                 }
 

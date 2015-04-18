@@ -111,6 +111,8 @@ namespace OnionEngine
         public ulong[] rookMoves = new ulong[64];
         public ulong[] kingMoves = new ulong[64];
 
+        public ulong[,] pawnAttacks = new ulong[2,64];
+
         public ulong[,] intersectLines = new ulong[64, 64];
         #endregion
 
@@ -124,8 +126,11 @@ namespace OnionEngine
             InitRookMoves();
             InitKingMoves();
 
+            InitPawnAttacks();
+
             InitIntersectLines();
         }
+
 
         private void InitKnightMoves()
         {
@@ -222,6 +227,29 @@ namespace OnionEngine
                     kingMoves[i] = (square << 1) | (square << 9) | (square << 8) | (square << 7) | (square >> 1) | (square >> 9) | (square >> 8) | (square >> 7);
                 }
 
+            }
+        }
+
+        private void InitPawnAttacks()
+        {
+            // white
+            for (int i = 0; i < 64; i++)
+            {
+                // left
+                pawnAttacks[0,i] = (SquareToBit(i) & ~files[0]) << 7;
+
+                // right
+                pawnAttacks[0, i] |= (SquareToBit(i) & ~files[7]) << 9;
+            }
+
+            // black
+            for (int i = 63; i >= 0; i--)
+            {
+                // left
+                pawnAttacks[1, i] = (SquareToBit(i) & ~files[0]) >> 9;
+
+                // right
+                pawnAttacks[1, i] |= (SquareToBit(i) & ~files[7]) >> 7;
             }
         }
 

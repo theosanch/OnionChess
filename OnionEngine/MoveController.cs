@@ -88,8 +88,31 @@ namespace OnionEngine
             Square from = (Square) Enum.Parse( typeof(Square),(strMove[0].ToString() + strMove[1].ToString()),true);
             Square to = (Square)Enum.Parse(typeof(Square), strMove[2].ToString() + strMove[3].ToString(), true);
 
-            Piece promotion = Piece.EMPTY;
+            #region pawn start
+            // if it was a pawn double move
+            if (position.pieceTypeBySquare[(int)from] == Piece.wP)
+            {
+                if (((int)from >> 3) == 1 && ((int)to >> 3) == 3)
+                {
+                    return ToInt(from, to, position.pieceTypeBySquare[(int)to], Piece.EMPTY, 3);
+                }
+            }
+            else if (position.pieceTypeBySquare[(int)from] == Piece.bP)
+            {
+                if (((int)from >> 3) == 6 && ((int)to >> 3) == 4)
+                {
+                    return ToInt(from, to, position.pieceTypeBySquare[(int)to], Piece.EMPTY, 3);
+                }
+            }
+            #endregion
+
+            if (to == position.enPassant)
+            {
+                return ToInt(from, to, position.pieceTypeBySquare[(int)to], Piece.EMPTY,1);
+            }
+
             // is there a promotion piece
+            Piece promotion = Piece.EMPTY;
             #region promotion
             if (strMove.Length > 4)
             {
@@ -140,29 +163,6 @@ namespace OnionEngine
                 }
             }
             #endregion
-
-            #region pawn start
-            // if it was a pawn initial move
-            if (position.pieceTypeBySquare[(int)from] == Piece.wP)
-            {
-                if ((int)from > 30 && (int)from < 38)
-                {
-                    return ToInt(from, to, position.pieceTypeBySquare[(int)to], promotion, 3);
-                }
-            }
-            else if (position.pieceTypeBySquare[(int)from] == Piece.bP)
-            {
-                if ((int)from > 80 && (int)from < 88)
-                {
-                    return ToInt(from, to, position.pieceTypeBySquare[(int)to], promotion, 3);
-                }
-            }
-            #endregion
-
-            if (to == position.enPassant)
-            {
-                return ToInt(from, to, position.pieceTypeBySquare[(int)to], promotion,1);
-            }
 
             return ToInt(from,to,position.pieceTypeBySquare[(int)to],promotion);
         }

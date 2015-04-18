@@ -177,6 +177,15 @@ namespace OnionEngine
                 position.pieceTypeBySquare[i] = Piece.EMPTY;
             }
 
+            for (int i = 0; i < 12; i++)
+            {
+                for (int x = 0; x < 10; x++)
+                {
+                    position.pieceSquareByType[i, x] = Square.INVALID;
+                }
+
+            }
+
             for (int i = 0; i < 2; i++)
             {
                 position.materialScore[i] = 0;
@@ -185,14 +194,17 @@ namespace OnionEngine
             for (int i = 0; i < 12; i++)
             {
                 position.pieceNumber[i] = 0;
+
+                position.locations[i] = 0UL;
+            }
+
+            for (int i = 0; i < 14; i++)
+            {
+                position.captures[i] = 0UL;
+                position.attacks[i] = 0UL;
+
             }
             #endregion
-
-            for (int i = 0; i < 12; i++)
-            {
-                position.locations[i] = 0UL;
-                position.attacks[i] = 0UL;
-            }
 
             #region meta data
             position.side = Color.Both;
@@ -734,7 +746,7 @@ namespace OnionEngine
 
             if (piece == Piece.EMPTY)
             {
-                
+
             }
 
             // piece array update
@@ -758,16 +770,28 @@ namespace OnionEngine
 
         }
 
-        public bool MakeMove(ref Position position, int move)
+        // return 0 if the move was made
+        // return 1 if the king is in check
+        // return -1 if the king was captured
+        public int MakeMove(ref Position position, int move)
         {
             // add move to history
             // check if hash is the same so we don't overtire the same move over and over
-            positionHistory[position.ply] = position.Clone();
+            if (positionHistory[position.ply] == null || positionHistory[position.ply].positionKey != position.positionKey)
+            {
+                positionHistory[position.ply] = position.Clone();
+            }
 
             Square from = this.move.GetFromSquare(move);
             Square to = this.move.GetToSquare(move);
             Piece capture = this.move.GetCapturedPiece(move);
             Color side = position.side;
+
+            //if (capture == Piece.bK || capture == Piece.wK)
+            //{
+            //    //UndoMove(ref position);
+            //    return -1;
+            //}
 
             // capture an en passant pawn
             if (this.move.GetEnPassantCapture(move))
@@ -810,10 +834,9 @@ namespace OnionEngine
             position.enPassant = Square.INVALID;
             position.positionKey = HashCastle(position);
 
-            Piece captured = this.move.GetCapturedPiece(move);
             position.fiftyMoveCounter++;
 
-            if (captured != Piece.EMPTY)
+            if (capture != Piece.EMPTY)
             {
                 RemovePiece(position, to);
                 position.fiftyMoveCounter = 0;
@@ -857,26 +880,26 @@ namespace OnionEngine
             // is the king attacked
             if (side == Color.w)
             {
-                if (moveGenerator.IsSquareAttacked(position, position.pieceSquareByType[(int)Piece.wK - 1, 0], Color.b))
+                if (moveGenerator.IsSquareAttacked(position, position.locations[(int)Piece.wK - 1], Color.b))
                 {
                     UndoMove(ref position);
-                    return false;
+                    return 1;
                 }
             }
             else
             {
-                if (moveGenerator.IsSquareAttacked(position, position.pieceSquareByType[(int)Piece.bK - 1, 0], Color.w))
+                if (moveGenerator.IsSquareAttacked(position, position.locations[(int)Piece.bK - 1], Color.w))
                 {
                     UndoMove(ref position);
-                    return false;
+                    return 1;
                 }
             }
 
-            return true;
+            return 0;
         }
         public void UndoMove(ref Position position)
         {
-            position = positionHistory[position.ply - 1];
+            position = positionHistory[position.ply - 1].Clone();
         }
 
         #endregion
