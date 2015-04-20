@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OnionEngine
 {
@@ -68,7 +64,7 @@ namespace OnionEngine
                 TestPosition(ref position, depth - 1);
                 board.UndoMove(ref position);
 
-                Console.WriteLine(moveNumber.ToString("D2") + " " + moveController.PrintMove(moveList[moveNumber]) + ": " + (leafNodes - cumulativeNodes).ToString("D"));
+                Console.WriteLine((moveNumber + 1).ToString("D2") + " " + moveController.PrintMove(moveList[moveNumber]) + ": " + (leafNodes - cumulativeNodes).ToString("D"));
             }
 
             Console.WriteLine("Total nodes:" + leafNodes.ToString("n"));

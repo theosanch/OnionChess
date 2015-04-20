@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OnionEngine
 {
     class Brain
     {
+        #region properties
         PositionController positionController;
         MoveController moveController;
         BitBoards bitboards;
@@ -18,12 +16,19 @@ namespace OnionEngine
 
         public Position currentPosition;
 
+
+
         // an ordered list of the five "best" moves
         public int[] bestMoveList = new int[5];
+
+        // a list with a position key and a evaluation score for that position
+        Dictionary<ulong, int> evaluationTable = new Dictionary<ulong, int>();  // the evaluation score of a searched position
+        Dictionary<int, int> transpositionTable = new Dictionary<int, int>();   // list with information about a searched position
 
         int[] legalMoves, scores;
 
         int depth = 0;
+        #endregion
 
         public Brain()
         {
@@ -36,7 +41,7 @@ namespace OnionEngine
         }
 
         // start looking for the best move from the current position
-        public async Task<int> Think()
+        public int Think()
         {
             // generate all moves
             legalMoves = moveGen.GenerateAllMoves(currentPosition);
@@ -57,28 +62,12 @@ namespace OnionEngine
         }
 
         // set the current position
+
+
         public void SetPosition(string fen)
         {
             currentPosition = positionController.ParseFen(fen.Split(' '));
         }
-
-        //run perft test on current position
-        public void PerftTest(int plyDepth)
-        {
-            Perft perft = new Perft(bitboards);
-
-            perft.Test(ref currentPosition,plyDepth);
-        }
-
-        public void Test(int plyDepth)
-        {
-            currentPosition = positionController.ParseFen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1".Split(' '));
-            Perft perft = new Perft(bitboards);
-
-            perft.Test(ref currentPosition, plyDepth);
-        }
-
-
 
         internal void Go(string[] command)
         {
@@ -105,5 +94,22 @@ namespace OnionEngine
 
             positionController.PrintPosition(currentPosition);
         }
+
+        #region test
+        //run perft test on current position
+        public void PerftTest(int plyDepth)
+        {
+            Perft perft = new Perft(bitboards);
+
+            perft.Test(ref currentPosition,plyDepth);
+        }
+        public void Test(int plyDepth)
+        {
+            currentPosition = positionController.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
+            Perft perft = new Perft(bitboards);
+
+            perft.Test(ref currentPosition, plyDepth);
+        }
+        #endregion
     }
 }

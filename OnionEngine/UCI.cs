@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OnionEngine
 {
     class UCI
     {
         Brain brain = new Brain();
+            
+        string currentFen;
+        List<string> currentMoves = new List<string>();
 
         public void Loop()
         {
@@ -18,7 +18,8 @@ namespace OnionEngine
             //Console.WriteLine("id name Onion 0.1");
             //Console.WriteLine("id author Theodore J. Sanchez");
 
-            Console.WriteLine("Onion v0.0.8 by Theodore J. Sanchez");
+            Console.WriteLine("Onion v0.1 by Theodore J. Sanchez");
+
 
             while (true)
             {
@@ -76,20 +77,31 @@ namespace OnionEngine
             {
                 //position = board.ParseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".Split(' '));
                 brain.SetPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+                //currentFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
                 i = 3;
             }
             else if (command[1] == "fen")
             {
                 //position = board.ParseFen(string.Format("{0} {1} {2} {3} {4} {5}", command[2], command[3], command[4], command[5], command[6], command[7]).Split(' '));
                 brain.SetPosition(command[2] + " " + command[3] + " " + command[4] + " " + command[5] + " " + command[6] + " " + command[7]);
+                //currentFen = command[2] + " " + command[3] + " " + command[4] + " " + command[5] + " " + command[6] + " " + command[7];
                 i = 9;
             }
 
-            //parse any moves that have been made past the initial position
-            for (i = i + 0; i < command.Length; i++)
+            // does the previous move match the previous move received
+            if (currentMoves.Count > 0 && command[command.Length - 2] == currentMoves[currentMoves.Count - 1])
             {
-                brain.MakeMove(command[i]);
-                
+                brain.MakeMove(command[command.Length - 1]);
+                currentMoves.Add(command[i]);
+            }
+            else
+            {
+                //parse any moves that have been made past the initial position
+                for (i = i + 0; i < command.Length; i++)
+                {
+                    brain.MakeMove(command[i]);
+                    currentMoves.Add(command[i]);
+                }
             }
         }
     }
