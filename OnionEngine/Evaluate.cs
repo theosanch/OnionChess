@@ -5,7 +5,7 @@ namespace OnionEngine
     {
 
 
-
+        // A quick and simple material evaluation
         public int QuickEvaluate(Position position)
         {
 
@@ -14,6 +14,14 @@ namespace OnionEngine
             return 0;
         }
 
+        // more advanced evaluation, but trimmed for speed
+        public int MediumEvaluation(Position position)
+        {
+            return 0;
+        }
+
+
+        // a full blown evaluation of the position
         public int LongEvaluate(Position position)
         {
 
