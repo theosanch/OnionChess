@@ -25,10 +25,6 @@ namespace OnionEngine
         }
 
 
-
-
-
-
         public int AlphaBetaSearch(ref Position position, int alpha, int beta, int depth, ref SearchData searchData)
         {
             // end of node - return the evaluation score
@@ -59,6 +55,9 @@ namespace OnionEngine
                 }
 
                 legalMoves++;
+
+                // check if move is in transposition table
+
                 score = -AlphaBetaSearch(ref position, -beta, -alpha, depth - 1, ref searchData);   // next depth
 
                 positionController.UndoMove(ref position);
@@ -82,7 +81,7 @@ namespace OnionEngine
 
             if (alpha != oldAlpha)
             {
-                transposition.AddPV(position.positionKey,bestMove);
+                //transposition.AddPV(position.positionKey,bestMove);
             }
 
             return alpha;
@@ -99,9 +98,9 @@ namespace OnionEngine
 
 
 
-            for (int currentDepth = 1; currentDepth < searchData.depth; currentDepth++)
+            for (int currentDepth = 1; currentDepth <= searchData.depth; currentDepth++)
             {
-                AlphaBetaSearch(ref position, currentDepth, int.MaxValue, int.MinValue, ref searchData);
+                AlphaBetaSearch(ref position, int.MaxValue, int.MinValue, currentDepth, ref searchData);
                 pvMoves = transposition.GetPVLine(position,currentDepth);
                 bestMove = pvMoves[0];
 
@@ -110,6 +109,5 @@ namespace OnionEngine
 
             }
         }
-
     }
 }

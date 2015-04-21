@@ -87,23 +87,23 @@ namespace OnionEngine
                 i = 9;
             }
 
-            // does the previous move match the previous move received
-            if (command[command.Length - 3] == lastmove)
-            {
-                brain.MakeMove(command[command.Length - 2]);
-                brain.MakeMove(command[command.Length - 1]);
-                lastmove = command[command.Length - 1];
-            }
-            else
-            {
-                //parse any moves that have been made past the initial position
+            //// does the previous move match the previous move received
+            //if (command[command.Length - 3] == lastmove)
+            //{
+            //    brain.MakeMove(command[command.Length - 2]);
+            //    brain.MakeMove(command[command.Length - 1]);
+            //    lastmove = command[command.Length - 1];
+            //}
+            //else
+            //{
+            //    //parse any moves that have been made past the initial position
                 for (i = i + 0; i < command.Length; i++)
                 {
                     brain.MakeMove(command[i]);
                 }
 
-                lastmove = command[command.Length - 1];
-            }
+                //lastmove = command[command.Length - 1];
+            //}
         }
     }
 }

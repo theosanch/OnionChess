@@ -93,12 +93,13 @@ namespace OnionEngine
         // a method for testing out whatever may need testing
         public void Test(int plyDepth)
         {
-            //currentPosition = positionController.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
+            currentPosition = positionController.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
             //Perft perft = new Perft(bitboards);
 
             //perft.Test(ref currentPosition, plyDepth);
-
-
+            SearchData searchData = new SearchData();
+            searchData.depth = plyDepth;
+            search.IterativeSearch(currentPosition.Clone(),ref searchData);
 
 
 
