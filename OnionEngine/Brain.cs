@@ -97,7 +97,7 @@ namespace OnionEngine
             //Perft perft = new Perft(bitboards);
 
             //perft.Test(ref currentPosition, plyDepth);
-            SearchData searchData = new SearchData();
+            SearchSettings searchData = new SearchSettings();
             searchData.depth = plyDepth;
             search.IterativeSearch(currentPosition.Clone(),ref searchData);
 

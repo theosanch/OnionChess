@@ -25,12 +25,12 @@ namespace OnionEngine
         }
 
 
-        public int AlphaBetaSearch(ref Position position, int alpha, int beta, int depth, ref SearchData searchData)
+        public int AlphaBetaSearch(ref Position position, int alpha, int beta, int depth, ref SearchSettings searchSettings)
         {
             // end of node - return the evaluation score
             if (depth == 0)
             {
-                searchData.nodes++;
+                searchSettings.nodes++;
                 return evaluation.QuickEvaluate(position);
             }
 
@@ -47,6 +47,8 @@ namespace OnionEngine
             // go through each move
             for (int i = 0; i < moves.Length; i++)
             {
+                EvaluationEntry entry = new EvaluationEntry(0,0,0,ScoreFlag.Empty);
+
                 // make the move
                 int n = positionController.MakeMove(ref position,moves[i]);
                 if (n != 0) // not a legal move
@@ -58,7 +60,7 @@ namespace OnionEngine
 
                 // check if move is in transposition table
 
-                score = -AlphaBetaSearch(ref position, -beta, -alpha, depth - 1, ref searchData);   // next depth
+                score = -AlphaBetaSearch(ref position, -beta, -alpha, depth - 1, ref searchSettings);   // next depth
 
                 positionController.UndoMove(ref position);
 
@@ -66,6 +68,9 @@ namespace OnionEngine
                 {
                     if (score > beta)
                     {
+
+                        transposition.AddPositionScore(position.positionKey,);
+
                         return beta;
                     }
                     alpha = score;
@@ -83,13 +88,17 @@ namespace OnionEngine
             {
                 //transposition.AddPV(position.positionKey,bestMove);
             }
+            else
+            {
+
+            }
 
             return alpha;
         }
 
 
 
-        public void IterativeSearch(Position position, ref SearchData searchData)
+        public void IterativeSearch(Position position, ref SearchSettings searchData)
         {
             int bestMove = 0;
             int bestScore = 0;
