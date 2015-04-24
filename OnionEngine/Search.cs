@@ -41,16 +41,18 @@ namespace OnionEngine
 
             int legalMoves = 0; // if no legal moves = check mate or stalemate
             int oldAlpha = alpha;
-            int bestMove = 0;
+
             int score = int.MinValue;
+            int bestScore = int.MinValue;
+
+            EvaluationEntry entry = new EvaluationEntry(0, 0, depth, ScoreFlag.Empty); // TODO: best move
 
             // go through each move
             for (int i = 0; i < moves.Length; i++)
             {
-                EvaluationEntry entry = new EvaluationEntry(0,0,0,ScoreFlag.Empty);
 
                 // make the move
-                int n = positionController.MakeMove(ref position,moves[i]);
+                int n = positionController.MakeMove(ref position, moves[i]);
                 if (n != 0) // not a legal move
                 {
                     continue;
@@ -61,20 +63,27 @@ namespace OnionEngine
                 // check if move is in transposition table
 
                 score = -AlphaBetaSearch(ref position, -beta, -alpha, depth - 1, ref searchSettings);   // next depth
+                entry.score = score;
 
                 positionController.UndoMove(ref position);
-
-                if (score > alpha)
+                if (score > bestScore)
                 {
-                    if (score > beta)
+                    bestScore = score;
+                    entry.bestMove = moves[i];
+
+
+                    if (score > alpha)
                     {
+                        if (score >= beta)
+                        {
+                            entry.score = beta;
+                            entry.scoreFlag = ScoreFlag.Beta;
+                            transposition.AddPositionScore(position.positionKey, entry);
 
-                        transposition.AddPositionScore(position.positionKey,);
-
-                        return beta;
+                            return beta;
+                        }
+                        alpha = score;
                     }
-                    alpha = score;
-                    bestMove = moves[i];
                 }
             }
 
@@ -86,11 +95,15 @@ namespace OnionEngine
 
             if (alpha != oldAlpha)
             {
-                //transposition.AddPV(position.positionKey,bestMove);
+                entry.score = score;
+                entry.scoreFlag = ScoreFlag.Exact;
+                transposition.AddPositionScore(position.positionKey, entry);
             }
             else
             {
-
+                entry.score = alpha;
+                entry.scoreFlag = ScoreFlag.Alpha;
+                transposition.AddPositionScore(position.positionKey, entry);
             }
 
             return alpha;
@@ -104,16 +117,18 @@ namespace OnionEngine
             int bestScore = 0;
 
             int[] pvMoves;
-
+            EvaluationEntry entry;
 
 
             for (int currentDepth = 1; currentDepth <= searchData.depth; currentDepth++)
             {
                 AlphaBetaSearch(ref position, int.MaxValue, int.MinValue, currentDepth, ref searchData);
-                pvMoves = transposition.GetPVLine(position,currentDepth);
-                bestMove = pvMoves[0];
+                //pvMoves = transposition.GetPVLine(position, currentDepth);
+                //bestMove = pvMoves[0];
 
-                Console.WriteLine(string.Format("depth:{0} score:{1} move:{2} nodes:{3}",currentDepth,bestScore,moveController.PrintMove(bestMove),searchData.nodes));
+                entry = transposition.GetPositionData(position.positionKey);
+
+                Console.WriteLine(string.Format("depth:{0} score:{1} move:{2} nodes:{3}", currentDepth, entry.score, moveController.PrintMove(entry.bestMove), searchData.nodes));
 
 
             }
