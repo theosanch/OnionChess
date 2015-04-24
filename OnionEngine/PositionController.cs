@@ -100,34 +100,6 @@ namespace OnionEngine
         }
 
         #region initialization
-        //private void InitSq120to64()
-        //{
-        //    // start each array with an invalid number for error checking
-        //    for (int i = 0; i < 120; i++)
-        //    {
-        //        Square120To64[i] = 65;
-        //    }
-        //    for (int i = 0; i < 64; i++)
-        //    {
-        //        Square64To120[i] = 120;
-        //    }
-
-        //    Square square = Square.A1;
-        //    int sq64 = 0;
-
-        //    // iterate each square
-        //    for (Rank rank = Rank.Rank_1; rank <= Rank.Rank_8; rank++)
-        //    {
-        //        for (File file = File.File_A; file <= File.File_H; file++)
-        //        {
-
-        //            square = PositionController.FileRanktoSquare(file, rank);
-        //            Square64To120[sq64] = (int)square;
-        //            Square120To64[(int)square] = sq64;
-        //            sq64++;
-        //        }
-        //    }
-        //}
         private void InitBitMasks()
         {
             // set to 0
@@ -163,6 +135,7 @@ namespace OnionEngine
         }
         #endregion
 
+        #region position misc
         // reset a given position to an invalid initial state
         private void ResetBoard(Position position)
         {
@@ -425,6 +398,7 @@ namespace OnionEngine
         {
             return ParseFen(C_StartFen.Split(' '));
         }
+        #endregion
 
         #region hash keys
         // return a random 64bit number
@@ -900,20 +874,6 @@ namespace OnionEngine
 
         #endregion
 
-        #region utility
-        private Color PieceToColor(Piece piece)
-        {
-            if ((int)piece < 7)
-            {
-                return Color.w;
-            }
-            else
-            {
-                return Color.b;
-            }
-        }
-        #endregion
-
         #region bit board manipulation
         // remove from a single position
         public ulong RemoveBit(ulong bitBoard, int square)
@@ -957,6 +917,18 @@ namespace OnionEngine
         }
         #endregion
 
+        #region utility
+        private Color PieceToColor(Piece piece)
+        {
+            if ((int)piece < 7)
+            {
+                return Color.w;
+            }
+            else
+            {
+                return Color.b;
+            }
+        }
         public void PrintPosition(Position position)
         {
             Console.WriteLine("Position: " + position.positionKey.ToString("X"));
@@ -1010,6 +982,32 @@ namespace OnionEngine
             Console.WriteLine("");
             Console.WriteLine("");
 
+        }
+        #endregion
+
+        // return true if the move can be made from this position and is legal
+        public bool MoveExists(Position position, int move)
+        {
+            // get a list of all moves for this position
+            int[] moves = moveGenerator.GenerateAllMoves(position);
+
+            // look for a matching legal move
+            foreach (int n in moves)
+            {
+                if (MakeMove(ref position, n) != 0)
+                {
+                    continue;
+                }
+                else
+                {
+                    if (n == move)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

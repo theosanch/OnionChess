@@ -8,7 +8,7 @@ namespace OnionEngine
         Brain brain = new Brain();
             
         string currentFen;
-        List<string> currentMoves = new List<string>();
+        string lastmove = "";
 
         public void Loop()
         {
@@ -77,7 +77,6 @@ namespace OnionEngine
             {
                 //position = board.ParseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".Split(' '));
                 brain.SetPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-                //currentFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
                 i = 3;
             }
             else if (command[1] == "fen")
@@ -88,21 +87,23 @@ namespace OnionEngine
                 i = 9;
             }
 
-            // does the previous move match the previous move received
-            if (currentMoves.Count > 0 && command[command.Length - 2] == currentMoves[currentMoves.Count - 1])
-            {
-                brain.MakeMove(command[command.Length - 1]);
-                currentMoves.Add(command[i]);
-            }
-            else
-            {
-                //parse any moves that have been made past the initial position
+            //// does the previous move match the previous move received
+            //if (command[command.Length - 3] == lastmove)
+            //{
+            //    brain.MakeMove(command[command.Length - 2]);
+            //    brain.MakeMove(command[command.Length - 1]);
+            //    lastmove = command[command.Length - 1];
+            //}
+            //else
+            //{
+            //    //parse any moves that have been made past the initial position
                 for (i = i + 0; i < command.Length; i++)
                 {
                     brain.MakeMove(command[i]);
-                    currentMoves.Add(command[i]);
                 }
-            }
+
+                //lastmove = command[command.Length - 1];
+            //}
         }
     }
 }

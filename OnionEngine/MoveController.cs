@@ -4,9 +4,14 @@ namespace OnionEngine
 {
     class MoveController
     {
-        // movement related tasks
+        // Movement related tasks
+
         // A single move is represented by an int
-        // from square, to square, and any other needed data is bitwise or into the int
+        // 
+        // The int represents the following information
+        // from square, to square, captured piece, promoted piece, and 
+        // en passant or promoted piece or pawn double move
+        // the data is bitwise or-ed into and out of the int
 
         private int enPassant = 0x40000, doubleMove = 0x80000, castle = 0x1000000;
 
@@ -162,6 +167,7 @@ namespace OnionEngine
 
             return ToInt(from,to,position.pieceTypeBySquare[(int)to],promotion);
         }
+        // get a string of the move in standard notation
         public string PrintMove(int move)
         {
             string results = "";

@@ -7,7 +7,6 @@ namespace OnionEngine
         // a struct might have better performance.
 
         #region meta information
-
         // the unique key for this position
         public ulong positionKey;
         // whose turn it is to move.
@@ -21,27 +20,29 @@ namespace OnionEngine
         public int fiftyMoveCounter;
         // what ply is this move at
         public int ply;
-
-
         #endregion
 
         #region piece information
+
+        #region piece lists
         // what piece type is on each square
         public Piece[] pieceTypeBySquare = new Piece[64];
         // track location of each piece in a single list. 
-        // 13: each piece type including empty.
+        // 12: each piece type.
         // 10: up to ten pieces for that type.
         public Square[,] pieceSquareByType = new Square[12, 10]; // needs to be initialized inside reset board method
 
         // how many of each piece type?
-        public int[] pieceNumber = new int[12];
+        public int[] pieceNumber = new int[12]; // this list helps with interacting with the pieceSquareByType array
+        #endregion
 
-        // location and attacks of each piece type
+        #region bitboards
         public ulong[] locations = new ulong[12];
 
-        // captures and attacks for each piece type including all for each color
-        public ulong[] captures = new ulong[14];
+        // pseudo legal captures and attacks for each piece type including all for each color [13-14]
+        public ulong[] captures = new ulong[14];    // both are generated during move generation
         public ulong[] attacks = new ulong[14];
+        #endregion
 
         public ulong WhitePosition
         {
