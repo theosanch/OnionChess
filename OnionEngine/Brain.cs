@@ -56,22 +56,15 @@ namespace OnionEngine
 
         internal void Go(string[] command)
         {
-            Random rng = new Random();
+            SearchSettings searchData = new SearchSettings();
+            searchData.depth = 5;
+            search.IterativeSearch(currentPosition.Clone(),ref searchData);
 
-            int[] moves = moveGen.GenerateAllMoves(currentPosition);
-            List<int> legalMoves = new List<int>();
 
-            foreach (int move in moves)
-            {
-                if (positionController.MakeMove(ref currentPosition,move) == 0)
-                {
-                    legalMoves.Add(move);
-                    positionController.UndoMove(ref currentPosition);
-                }
-            }
-            
-            Console.WriteLine("bestmove " + moveController.PrintMove(legalMoves[rng.Next(legalMoves.Count)]));
-            positionController.PrintPosition(currentPosition);
+
+            int bestMove = transposition.GetPositionData(currentPosition.positionKey).bestMove;
+            Console.WriteLine("bestmove " + moveController.PrintMove(bestMove));
+            //positionController.PrintPosition(currentPosition);
         }
 
         internal void MakeMove(string strMove)
@@ -86,6 +79,7 @@ namespace OnionEngine
         //run perft test on current position
         public void PerftTest(int plyDepth)
         {
+            currentPosition = positionController.ParseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".Split(' '));
             Perft perft = new Perft(bitboards);
 
             perft.Test(ref currentPosition,plyDepth);
@@ -94,12 +88,18 @@ namespace OnionEngine
         public void Test(int plyDepth)
         {
             currentPosition = positionController.ParseFen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1".Split(' '));
+            //currentPosition = positionController.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
+            //currentPosition = positionController.ParseFen("4k3/8/8/8/8/r6r/P6P/R3K2R w KQ - 0 1".Split(' '));
+            
+            
             //Perft perft = new Perft(bitboards);
-
             //perft.Test(ref currentPosition, plyDepth);
+
+
+
             SearchSettings searchData = new SearchSettings();
             searchData.depth = plyDepth;
-            search.IterativeSearch(currentPosition.Clone(),ref searchData);
+            search.IterativeSearch(currentPosition.Clone(), ref searchData);
 
 
 

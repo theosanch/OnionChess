@@ -78,14 +78,14 @@ namespace OnionEngine
         private readonly int[] C_KingDirection = { -1, -10, 1, 10, -9, -11, 11, 9 };
 
         private readonly int[] CastlePerm = {
-        13, 15, 15, 15, 12, 15, 15, 14,
+        11, 15, 15, 15, 10, 15, 15, 14,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
-         7, 15, 15, 15,  3, 15, 15, 11};
+         7, 15, 15, 15,  5, 15, 15, 13};
         #endregion
 
         public PositionController(BitBoards bitboard)
@@ -714,9 +714,10 @@ namespace OnionEngine
         {
             Piece piece = position.pieceTypeBySquare[(int)from];
 
+            // error print board
             if (piece == Piece.EMPTY)
             {
-
+                PrintPosition(position);
             }
 
             // piece array update
@@ -746,7 +747,8 @@ namespace OnionEngine
         public int MakeMove(ref Position position, int move)
         {
             // add move to history
-            // check if hash is the same so we don't overtire the same move over and over
+            // check if hash is the same so we don't overwrite the same move over and over
+            // clone() is not cheap
             if (positionHistory[position.ply] == null || positionHistory[position.ply].positionKey != position.positionKey)
             {
                 positionHistory[position.ply] = position.Clone();
@@ -795,6 +797,11 @@ namespace OnionEngine
 
                         break;
                 }
+            }
+
+            if (from == Square.H8 && to == Square.H4)
+            {
+                
             }
 
             // castle

@@ -75,6 +75,11 @@ namespace OnionEngine
             return (bitboard << shift) | (bitboard >> 64 - shift);
         }
 
+        /// <summary>
+        /// Generates all legal moves given a position
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns>Each int in the array represents a from square and to square</returns>
         public int[] GenerateAllMoves(Position position)
         {
             #region variables
@@ -337,7 +342,7 @@ namespace OnionEngine
                 {
                     int[] colorKey = { 1,2,4,8,     // castle values
                                        4,60,6,62,   // from and to squares for black and white
-                                        1,57};
+                                        2,58};
                     // king side
                     // if this castle is still available
                     if ((position.castlePerm & colorKey[(int)position.side]) > 0)
@@ -386,10 +391,10 @@ namespace OnionEngine
                                 if (!IsSquareAttacked(position, bitboardController.SquareToBit(check), 1 - position.side))
                                 {
                                     n++;
-                                    if (n > 2)
+                                    if (n > 1)
                                     {
-                                        Square to = (Square)(colorKey[(int)position.side + 8] + 1);
-                                        AddQuiteMove(move.ToInt(from, (Square)(colorKey[(int)position.side + 8] + 1), Piece.EMPTY, Piece.EMPTY, 2));
+                                        Square to = (Square)(colorKey[(int)position.side + 8]);
+                                        AddQuiteMove(move.ToInt(from, (Square)(colorKey[(int)position.side + 8]), Piece.EMPTY, Piece.EMPTY, 2));
                                     }
                                 }
                             }
@@ -530,7 +535,7 @@ namespace OnionEngine
             return false;
         }
 
-        // convert file and rank to square which has a 120 based number
+        // convert file and rank to square
         public Square FileRanktoSquare(File file, Rank rank)
         {
             return (Square)((int)file) + (8 * (int)rank);

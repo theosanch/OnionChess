@@ -42,8 +42,8 @@ namespace OnionEngine
             int legalMoves = 0; // if no legal moves = check mate or stalemate
             int oldAlpha = alpha;
 
-            int score = int.MinValue;
-            int bestScore = int.MinValue;
+            int score = -999999;
+            int bestScore = -999999;
 
             EvaluationEntry entry = new EvaluationEntry(0, 0, depth, ScoreFlag.Empty); // TODO: best move
 
@@ -62,7 +62,7 @@ namespace OnionEngine
 
                 // check if move is in transposition table
 
-                score = -AlphaBetaSearch(ref position, -beta, -alpha, depth - 1, ref searchSettings);   // next depth
+                score = (-1) * AlphaBetaSearch(ref position, (-1) * beta, (-1) * alpha, depth - 1, ref searchSettings);  // next depth
                 entry.score = score;
 
                 positionController.UndoMove(ref position);
@@ -95,7 +95,7 @@ namespace OnionEngine
 
             if (alpha != oldAlpha)
             {
-                entry.score = score;
+                entry.score = bestScore;
                 entry.scoreFlag = ScoreFlag.Exact;
                 transposition.AddPositionScore(position.positionKey, entry);
             }
@@ -113,18 +113,12 @@ namespace OnionEngine
 
         public void IterativeSearch(Position position, ref SearchSettings searchData)
         {
-            int bestMove = 0;
-            int bestScore = 0;
-
-            int[] pvMoves;
             EvaluationEntry entry;
 
 
             for (int currentDepth = 1; currentDepth <= searchData.depth; currentDepth++)
             {
-                AlphaBetaSearch(ref position, int.MaxValue, int.MinValue, currentDepth, ref searchData);
-                //pvMoves = transposition.GetPVLine(position, currentDepth);
-                //bestMove = pvMoves[0];
+                AlphaBetaSearch(ref position, -999999, 999999, currentDepth, ref searchData);
 
                 entry = transposition.GetPositionData(position.positionKey);
 
