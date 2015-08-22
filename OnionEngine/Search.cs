@@ -10,7 +10,7 @@ namespace OnionEngine
     {
         Transposition transposition;
 
-        Evaluate evaluation = new Evaluate();
+        Evaluate evaluation;
 
         MoveGenerator moveGenerator;
 
@@ -22,6 +22,7 @@ namespace OnionEngine
             this.transposition = transposition;
             this.moveGenerator = new MoveGenerator(bitboards);
             this.positionController = new PositionController(bitboards);
+            this.evaluation = new Evaluate(bitboards);
         }
 
 
@@ -31,7 +32,8 @@ namespace OnionEngine
             if (depth == 0)
             {
                 searchSettings.nodes++;
-                return evaluation.QuickEvaluate(position);
+                //return evaluation.QuickEvaluate(position);
+                return evaluation.MediumEvaluation(position);
             }
 
             // TODO: check for repetition or 50 move

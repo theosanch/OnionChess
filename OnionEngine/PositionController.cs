@@ -71,13 +71,7 @@ namespace OnionEngine
         // used for simple position evaluation  wP   wN   wB   wR    wQ    wK...
         private readonly int[] C_MaterialValues = { 0, 100, 325, 325, 550, 1000, 50000, 100, 325, 325, 550, 1000, 50000 };
 
-        // Piece movement direction - non bit-board movement
-        private readonly int[] C_KnightDirection = { -8, -19, -21, -12, 8, 19, 21, 12 };
-        private readonly int[] C_RookDirection = { -1, -10, 1, 10 };
-        private readonly int[] C_BishoptDirection = { -9, -11, 11, 9 };
-        private readonly int[] C_KingDirection = { -1, -10, 1, 10, -9, -11, 11, 9 };
-
-        private readonly int[] CastlePerm = {
+        private readonly int[] CastleHelper = {
         11, 15, 15, 15, 10, 15, 15, 14,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
@@ -806,8 +800,8 @@ namespace OnionEngine
 
             // castle
             position.positionKey = HashCastle(position);
-            position.castlePerm &= CastlePerm[(int)from];
-            position.castlePerm &= CastlePerm[(int)to];
+            position.castlePerm &= CastleHelper[(int)from];
+            position.castlePerm &= CastleHelper[(int)to];
             position.enPassant = Square.INVALID;
             position.positionKey = HashCastle(position);
 

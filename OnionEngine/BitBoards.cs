@@ -100,6 +100,7 @@ namespace OnionEngine
         public const ulong lightSquares = 0x55aa55aa55aa55aaUL;
         #endregion
 
+        // arrays of pre-generated moves for some pieces as well as move generation helpers. 
         #region PreCalculated Moves
         public ulong[] knightMoves = new ulong[64];
         public ulong[] bishopMoves = new ulong[64];
@@ -108,6 +109,7 @@ namespace OnionEngine
 
         public ulong[,] pawnAttacks = new ulong[2,64];
 
+        // the in between squares from any two squares that make a line or diagonal.
         public ulong[,] intersectLines = new ulong[64, 64];
         #endregion
 
