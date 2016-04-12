@@ -2,7 +2,7 @@
 
 namespace OnionEngine
 {
-    class MoveController
+    static class Move
     {
         // Movement related tasks
 
@@ -13,29 +13,29 @@ namespace OnionEngine
         // en passant or promoted piece or pawn double move
         // the data is bitwise or-ed into and out of the int
 
-        private int enPassant = 0x40000, doubleMove = 0x80000, castle = 0x1000000;
+        private static int enPassant = 0x40000, doubleMove = 0x80000, castle = 0x1000000;
 
         #region move to int
         // a movement is stored in a single int
-        public int ToInt(Square from, Square to, Piece captured, Piece promoted)
+        public static int ToInt(Square from, Square to, Piece captured, Piece promoted)
         {
             return ((int)from) | ((int)to << 7) | ((int)captured << 14) | ((int)promoted << 20);
         }
 
         // 1 = en passant capture 2 = castle move 3 = double move
-        public int ToInt(Square from, Square to, Piece captured, Piece promoted, int n)
+        public static int ToInt(Square from, Square to, Piece captured, Piece promoted, int n)
         {
             if (n == 1)
             {
-                return (ToInt(from, to, captured, promoted)) | (this.enPassant);
+                return (ToInt(from, to, captured, promoted)) | (enPassant);
             }
             else if (n == 2)
             {
-                return (ToInt(from, to, captured, promoted)) | (this.castle);
+                return (ToInt(from, to, captured, promoted)) | (castle);
             }
             else
             {
-                return (ToInt(from, to, captured, promoted)) | (this.doubleMove);
+                return (ToInt(from, to, captured, promoted)) | (doubleMove);
             }
         }
         #endregion
@@ -43,48 +43,48 @@ namespace OnionEngine
         #region int to info
         // get data from a specified move number
         //FROM
-        public Square GetFromSquare(int move)
+        public static Square GetFromSquare(int move)
         {
             return (Square)(move & 0x7F);
         }
 
         // TO
-        public Square GetToSquare(int move)
+        public static Square GetToSquare(int move)
         {
             return (Square)((move >> 7) & 0x7F);
         }
 
         // CAPTURED
-        public Piece GetCapturedPiece(int move)
+        public static Piece GetCapturedPiece(int move)
         {
             return (Piece)((move >> 14) & 0xF);
         }
 
         // PROMOTED PIECE
-        public Piece GetPromotedPiece(int move)
+        public static Piece GetPromotedPiece(int move)
         {
             return (Piece)((move >> 20) & 0xF);
         }
 
         // was it an en passant capture?
-        public bool GetEnPassantCapture(int move)
+        public static bool GetEnPassantCapture(int move)
         {
             return (move & enPassant) > 0;
         }
         // was it a castle move
-        public bool GetCastle(int move)
+        public static bool GetCastle(int move)
         {
             return (move & castle) > 0;
         }
         // was it a pawn starting position move
-        public bool GetPawnDoubleMove(int move)
+        public static bool GetPawnDoubleMove(int move)
         {
             return (move & doubleMove) > 0;
         }
         #endregion
 
         // parse a standard notation move into its int representation
-        public int ParseMove(Position position,string strMove)
+        public static int ParseMove(Position position,string strMove)
         {
             Square from = (Square) Enum.Parse( typeof(Square),(strMove[0].ToString() + strMove[1].ToString()),true);
             Square to = (Square)Enum.Parse(typeof(Square), strMove[2].ToString() + strMove[3].ToString(), true);
@@ -117,7 +117,7 @@ namespace OnionEngine
             #region promotion
             if (strMove.Length > 4)
             {
-                switch (strMove[5])
+                switch (strMove[4])
                 {
                     case 'q':
                         if (position.side == Color.w)
@@ -167,8 +167,9 @@ namespace OnionEngine
 
             return ToInt(from,to,position.pieceTypeBySquare[(int)to],promotion);
         }
+
         // get a string of the move in standard notation
-        public string PrintMove(int move)
+        public static string ToString(int move)
         {
             string results = "";
 
@@ -185,6 +186,13 @@ namespace OnionEngine
             
 
             return results;
+        }
+
+        // not related to the move type, but no better place to put yet
+        // convert file and rank to square
+        public static Square FileRanktoSquare(File file, Rank rank)
+        {
+            return (Square)((int)file) + (8 * (int)rank);
         }
     }
 }

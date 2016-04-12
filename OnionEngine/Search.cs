@@ -4,25 +4,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace OnionEngine
 {
     class Search
     {
         Transposition transposition;
-
         Evaluate evaluation;
-
+        Board board;
         MoveGenerator moveGenerator;
 
-        MoveController moveController = new MoveController();
-        PositionController positionController;
-
-        public Search(Transposition transposition, BitBoards bitboards)
+        public Search(Transposition transposition)
         {
             this.transposition = transposition;
-            this.moveGenerator = new MoveGenerator(bitboards);
-            this.positionController = new PositionController(bitboards);
-            this.evaluation = new Evaluate(bitboards);
+            this.board = new Board();
+            this.evaluation = new Evaluate();
+            this.moveGenerator = new MoveGenerator();
         }
 
 
@@ -40,6 +37,7 @@ namespace OnionEngine
 
             // generate each move
             int[] moves = moveGenerator.GenerateAllMoves(position);
+            //Console.WriteLine("Search AlphaBeta GenerateMoves");
 
             int legalMoves = 0; // if no legal moves = check mate or stalemate
             int oldAlpha = alpha;
@@ -54,7 +52,7 @@ namespace OnionEngine
             {
 
                 // make the move
-                int n = positionController.MakeMove(ref position, moves[i]);
+                int n = board.MakeMove(ref position, moves[i]);
                 if (n != 0) // not a legal move
                 {
                     continue;
@@ -63,11 +61,17 @@ namespace OnionEngine
                 legalMoves++;
 
                 // check if move is in transposition table
-
-                score = (-1) * AlphaBetaSearch(ref position, (-1) * beta, (-1) * alpha, depth - 1, ref searchSettings);  // next depth
+                if(position.fiftyMoveCounter == 50)
+                {
+                    score = 0;
+                }
+                else
+                {
+                    score = (-1) * AlphaBetaSearch(ref position, (-1) * beta, (-1) * alpha, depth - 1, ref searchSettings);  // next depth
+                }
                 entry.score = score;
 
-                positionController.UndoMove(ref position);
+                board.UndoMove(ref position);
                 if (score > bestScore)
                 {
                     bestScore = score;
@@ -87,6 +91,7 @@ namespace OnionEngine
                         alpha = score;
                     }
                 }
+
             }
 
             // mate or stalemate
@@ -124,7 +129,7 @@ namespace OnionEngine
 
                 entry = transposition.GetPositionData(position.positionKey);
 
-                Console.WriteLine(string.Format("depth:{0} score:{1} move:{2} nodes:{3}", currentDepth, entry.score, moveController.PrintMove(entry.bestMove), searchData.nodes));
+                Console.WriteLine(string.Format("depth:{0} score:{1} move:{2} nodes:{3}", currentDepth, entry.score, Move.ToString(entry.bestMove), searchData.nodes));
 
 
             }

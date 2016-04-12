@@ -59,15 +59,13 @@ namespace OnionEngine
         private Dictionary<ulong, EvaluationEntry> transpositionTable = new Dictionary<ulong, EvaluationEntry>();   // list with information about a searched position
         private Dictionary<ulong, int> princableVariationTable = new Dictionary<ulong, int>();                      // the best lines to search first
 
-
-        MoveGenerator moveGen;
-        PositionController positionController;
+        Board board = new Board();
         #endregion
 
-        public Transposition(PositionController positionController, MoveGenerator moveGen)
+        public Transposition()
         {
-            this.moveGen = moveGen;
-            this.positionController = positionController;
+            
+            
         }
 
 
@@ -86,7 +84,6 @@ namespace OnionEngine
             }
             return move;
         }
-
         // send in a copy of the position
         public int[] GetPVLine(Position copyOfPosition, int depth)
         {
@@ -96,9 +93,9 @@ namespace OnionEngine
 
             while (move != 0 && count < depth)
             {
-                if (positionController.MoveExists(copyOfPosition,move))
+                if (board.MoveExists(copyOfPosition,move))
                 {
-                    positionController.MakeMove(ref copyOfPosition, move);
+                    board.MakeMove(ref copyOfPosition, move);
                     PVLine[count] = move;
                     count++;
                 }
@@ -135,18 +132,26 @@ namespace OnionEngine
             {
                 transpositionTable.Add(positionKey,entry);
             }
+            // decide whether an entry should be overridden
+            else if (existingEntry.scoreFlag == ScoreFlag.Exact)
+            {
+                
+            }
             else
             {
-                // decide whether an entry should be overridden
-
-                // just overide for now
-                transpositionTable.Remove(positionKey);
-                transpositionTable.Add(positionKey,entry);
+                if(existingEntry.scoreFlag == ScoreFlag.Beta &&
+                    entry.score < existingEntry.score)
+                {
+                    transpositionTable.Remove(positionKey);
+                    transpositionTable.Add(positionKey, entry);
+                }
+                else if (existingEntry.scoreFlag == ScoreFlag.Alpha &&
+                    entry.score > existingEntry.score)
+                {
+                    transpositionTable.Remove(positionKey);
+                    transpositionTable.Add(positionKey, entry);
+                }
             }
-
-
-
-
         }
         #endregion
     }

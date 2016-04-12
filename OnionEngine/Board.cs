@@ -42,30 +42,33 @@ namespace OnionEngine
     }
     #endregion
 
-    class PositionController
+    // TODO
+    // Retain top generated moves for the next move generation
+    // make global variable to represent pawn kind etc for array positions.
+
+
+    /// <summary>
+    /// Board handles higher level functions and information compared to the Position class
+    /// which only handles very basic information of a single position. 
+    /// 
+    /// The most involved task is making/undoing moves and keeping track of that history
+    /// </summary>
+    class Board
     {
+
         #region properties
-        Random rng = new Random();
+        
 
         MoveGenerator moveGenerator;
-        BitBoards bitboard;
+        Hash hash = new Hash();
 
         private Position[] positionHistory = new Position[256];
 
-        private const int C_BoardSquareNumber = 64;
-        private const int C_MaxGameMoves = 2048;
-        private const string C_StartFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        private const int C_BOARD_SQUARE_NUMBER = 64;
+        private const int C_MAX_GAME_MOVES = 2048;
+        private const string C_START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-        // unique key for each piece [type,position]
-        public ulong[,] pieceKeys = new ulong[13, 64];
-        // key for white or black?
-        public ulong sideKey;
-        // a key for each castle permutation?
-        public ulong[] castleKeys = new ulong[16];
-
-        // helper boards
-        public ulong[] setMask = new ulong[64];
-        public ulong[] clearMask = new ulong[64];
+       
 
         // value of each piece type
         // used for simple position evaluation  wP   wN   wB   wR    wQ    wK...
@@ -82,52 +85,12 @@ namespace OnionEngine
          7, 15, 15, 15,  5, 15, 15, 13};
         #endregion
 
-        public PositionController(BitBoards bitboard)
+        public Board()
         {
-            this.bitboard = bitboard;
-            moveGenerator = new MoveGenerator(bitboard);
-
-            InitBitMasks();
-            InitHashKeys();
-            //InitSq120to64();
-            //InitFileRankBoards();
+            moveGenerator = new MoveGenerator();
         }
 
-        #region initialization
-        private void InitBitMasks()
-        {
-            // set to 0
-            for (int i = 0; i < 64; i++)
-            {
-                setMask[i] = 0ul;
-                clearMask[i] = 0ul;
-            }
-
-            // set mask
-            for (int i = 0; i < 64; i++)
-            {
-                setMask[i] |= (1ul << i);
-                clearMask[i] = ~setMask[i];
-
-            }
-        }
-        private void InitHashKeys()
-        {
-            for (int i = 0; i < 13; i++)
-            {
-                for (int n = 0; n < 64; n++)
-                {
-                    pieceKeys[i, n] = Random64bit();
-                }
-            }
-            sideKey = Random64bit();
-
-            for (int i = 0; i < 16; i++)
-            {
-                castleKeys[i] = Random64bit();
-            }
-        }
-        #endregion
+        
 
         #region position misc
         // reset a given position to an invalid initial state
@@ -156,7 +119,7 @@ namespace OnionEngine
 
             for (int i = 0; i < 12; i++)
             {
-                position.pieceNumber[i] = 0;
+                position.pieceCount[i] = 0;
 
                 position.locations[i] = 0UL;
             }
@@ -181,6 +144,8 @@ namespace OnionEngine
             position.positionKey = 0ul;
             #endregion
         }
+
+        // 
         private void UpdateMaterialLists(Position position)
         {
             for (int i = 0; i < 64; i++)
@@ -205,12 +170,12 @@ namespace OnionEngine
                     // add the square to the array
                     // square[13, 10] - [13 types including empty, up to 10 pieces of that type]
                     // however, empties are never tracked in this array
-                    position.pieceSquareByType[(int)piece - 1, position.pieceNumber[(int)piece - 1]] = (Square)i;
+                    position.pieceSquareByType[(int)piece - 1, position.pieceCount[(int)piece - 1]] = (Square)i;
                     // we now have one more of this piece type.
-                    position.pieceNumber[(int)piece - 1]++;
+                    position.pieceCount[(int)piece - 1]++;
 
                     // a list of all squares 
-                    position.pieceTypeBySquare[i] = piece;
+                    //position.pieceTypeBySquare[i] = piece;
                 }
             }
         }
@@ -247,51 +212,51 @@ namespace OnionEngine
                 {
                     case 'p':
                         piece = Piece.bP;
-                        position.locations[6] = AddBit(position.locations[6], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[6] = BitBoard.AddBit(position.locations[6], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'n':
                         piece = Piece.bN;
-                        position.locations[7] = AddBit(position.locations[7], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[7] = BitBoard.AddBit(position.locations[7], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'b':
                         piece = Piece.bB;
-                        position.locations[8] = AddBit(position.locations[8], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[8] = BitBoard.AddBit(position.locations[8], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'r':
                         piece = Piece.bR;
-                        position.locations[9] = AddBit(position.locations[9], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[9] = BitBoard.AddBit(position.locations[9], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'q':
                         piece = Piece.bQ;
-                        position.locations[10] = AddBit(position.locations[10], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[10] = BitBoard.AddBit(position.locations[10], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'k':
                         piece = Piece.bK;
-                        position.locations[11] = AddBit(position.locations[11], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[11] = BitBoard.AddBit(position.locations[11], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'P':
                         piece = Piece.wP;
-                        position.locations[0] = AddBit(position.locations[0], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[0] = BitBoard.AddBit(position.locations[0], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'N':
                         piece = Piece.wN;
-                        position.locations[1] = AddBit(position.locations[1], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[1] = BitBoard.AddBit(position.locations[1], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'B':
                         piece = Piece.wB;
-                        position.locations[2] = AddBit(position.locations[2], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[2] = BitBoard.AddBit(position.locations[2], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'R':
                         piece = Piece.wR;
-                        position.locations[3] = AddBit(position.locations[3], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[3] = BitBoard.AddBit(position.locations[3], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'Q':
                         piece = Piece.wQ;
-                        position.locations[4] = AddBit(position.locations[4], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[4] = BitBoard.AddBit(position.locations[4], (int)Move.FileRanktoSquare(file, rank));
                         break;
                     case 'K':
                         piece = Piece.wK;
-                        position.locations[5] = AddBit(position.locations[5], (int)moveGenerator.FileRanktoSquare(file, rank));
+                        position.locations[5] = BitBoard.AddBit(position.locations[5], (int)Move.FileRanktoSquare(file, rank));
                         break;
 
                     case '1':
@@ -322,7 +287,7 @@ namespace OnionEngine
 
                     if (piece != Piece.EMPTY)
                     {
-                        position.pieceTypeBySquare[(int)moveGenerator.FileRanktoSquare(file, rank)] = piece;
+                        position.pieceTypeBySquare[(int)Move.FileRanktoSquare(file, rank)] = piece;
 
                     }
                     file++;
@@ -373,7 +338,7 @@ namespace OnionEngine
                 // from number to Rank
                 rank = (Rank)(int.Parse(((fen[3])[1]).ToString()) - 1);
 
-                position.enPassant = moveGenerator.FileRanktoSquare(file, rank);
+                position.enPassant = Move.FileRanktoSquare(file, rank);
             }
             #endregion
 
@@ -382,7 +347,7 @@ namespace OnionEngine
             #endregion
 
             // generate hash key for this position
-            position.positionKey = GeneratePositionKey(position);
+            position.positionKey = hash.GeneratePositionKey(position);
 
             UpdateMaterialLists(position);
 
@@ -390,74 +355,13 @@ namespace OnionEngine
         }
         public Position StartPosition()
         {
-            return ParseFen(C_StartFen.Split(' '));
+            return ParseFen(C_START_FEN.Split(' '));
         }
         #endregion
 
-        #region hash keys
-        // return a random 64bit number
-        // used for hash key generation
-        private ulong Random64bit()
-        {
-            var buffer = new byte[sizeof(Int64)];
-            rng.NextBytes(buffer);
-            return BitConverter.ToUInt64(buffer, 0);
-        }
-        // generate unique key for a given position
-        private ulong GeneratePositionKey(Position position)
-        {
-            ulong finalKey = 0;
-            Piece piece = Piece.EMPTY;
-
-            // check each square
-            for (int squareNumber = 0; squareNumber < C_BoardSquareNumber; squareNumber++)
-            {
-                piece = position.pieceTypeBySquare[squareNumber];
-                if (piece != Piece.INVALID && piece != Piece.EMPTY)
-                {
-                    // hash key if it is a valid square
-                    finalKey ^= pieceKeys[(int)piece, squareNumber];
-                }
-            }
-
-            // if it is whites turn
-            if (position.side == Color.w)
-            {
-                finalKey ^= sideKey;
-            }
-
-            // if there is en passant available
-            if (position.enPassant != Square.INVALID)
-            {
-                finalKey ^= pieceKeys[(int)Piece.EMPTY, (int)position.enPassant];
-            }
-
-            // castle status
-            finalKey ^= castleKeys[position.castlePerm];
-
-            return finalKey;
-        }
-
-        private ulong HashPiece(Position position, Piece piece, Square square)
-        {
-            return position.positionKey ^= (pieceKeys[(int)piece, (int)square]);
-        }
-        private ulong HashCastle(Position position)
-        {
-            return position.positionKey ^= castleKeys[position.castlePerm];
-        }
-        private ulong HashSide(Position position)
-        {
-            return position.positionKey ^= sideKey;
-        }
-        private ulong HashEnPassant(Position position)
-        {
-            return position.positionKey ^= pieceKeys[(int)Piece.EMPTY, (int)position.enPassant];
-        }
-        #endregion
+        
 
         #region change position
-        MoveController move = new MoveController();
 
         #region old make move
         //public void RemovePiece(Position position, Square square)
@@ -666,29 +570,29 @@ namespace OnionEngine
         {
             Color color = PieceToColor(piece);
 
-            position.positionKey = HashPiece(position, piece, square);
+            position.positionKey = hash.HashPiece(position, piece, square);
 
             position.pieceTypeBySquare[(int)square] = piece;
 
             position.materialScore[(int)color] += C_MaterialValues[(int)piece];
-            position.pieceSquareByType[(int)piece - 1, position.pieceNumber[(int)piece - 1]] = square;
-            position.pieceNumber[(int)piece - 1]++;
+            position.pieceSquareByType[(int)piece - 1, position.pieceCount[(int)piece - 1]] = square;
+            position.pieceCount[(int)piece - 1]++;
 
-            position.locations[(int)piece - 1] = AddBit(position.locations[(int)piece - 1], (int)square);
+            position.locations[(int)piece - 1] = BitBoard.AddBit(position.locations[(int)piece - 1], (int)square);
         }
         private void RemovePiece(Position position, Square square)
         {
             Piece piece = position.pieceTypeBySquare[(int)square];
 
             // piece array update
-            position.positionKey = HashPiece(position, piece, square);
+            position.positionKey = hash.HashPiece(position, piece, square);
             position.pieceTypeBySquare[(int)square] = Piece.EMPTY;
 
-            for (int i = 0; i < position.pieceNumber[(int)piece - 1]; i++)
+            for (int i = 0; i < position.pieceCount[(int)piece - 1]; i++)
             {
                 if (position.pieceSquareByType[(int)piece - 1, i] == square)
                 {
-                    position.pieceNumber[(int)piece - 1]--;
+                    position.pieceCount[(int)piece - 1]--;
                     position.pieceSquareByType[(int)piece - 1, i] = Square.INVALID; //position.pieceSquareByType[(int)piece, position.pieceNumber[(int)piece]];
 
                     // now move each square to the from of its array
@@ -702,7 +606,7 @@ namespace OnionEngine
             }
 
             // bitboard update
-            position.locations[(int)piece - 1] = RemoveBit(position.locations[(int)piece - 1], (int)square);
+            position.locations[(int)piece - 1] = BitBoard.RemoveBit(position.locations[(int)piece - 1], (int)square);
         }
         private void MovePiece(Position position, Square from, Square to)
         {
@@ -711,17 +615,17 @@ namespace OnionEngine
             // error print board
             if (piece == Piece.EMPTY)
             {
-                PrintPosition(position);
+                Console.Write(position.ToString());
             }
 
             // piece array update
-            position.positionKey = HashPiece(position, piece, from);
+            position.positionKey = hash.HashPiece(position, piece, from);
             position.pieceTypeBySquare[(int)from] = Piece.EMPTY;
 
-            position.positionKey = HashPiece(position, piece, to);
+            position.positionKey = hash.HashPiece(position, piece, to);
             position.pieceTypeBySquare[(int)to] = piece;
 
-            for (int i = 0; i < position.pieceNumber[(int)piece - 1]; i++)
+            for (int i = 0; i < position.pieceCount[(int)piece - 1]; i++)
             {
                 if (position.pieceSquareByType[(int)piece - 1, i] == from)
                 {
@@ -730,14 +634,14 @@ namespace OnionEngine
             }
 
             // bitboard update
-            position.locations[(int)piece - 1] = RemoveBit(position.locations[(int)piece - 1], (int)from);
-            position.locations[(int)piece - 1] = AddBit(position.locations[(int)piece - 1], (int)to);
+            position.locations[(int)piece - 1] = BitBoard.RemoveBit(position.locations[(int)piece - 1], (int)from);
+            position.locations[(int)piece - 1] = BitBoard.AddBit(position.locations[(int)piece - 1], (int)to);
 
         }
 
+        // return -1 if the king was captured
         // return 0 if the move was made
         // return 1 if the king is in check
-        // return -1 if the king was captured
         public int MakeMove(ref Position position, int move)
         {
             // add move to history
@@ -748,9 +652,9 @@ namespace OnionEngine
                 positionHistory[position.ply] = position.Clone();
             }
 
-            Square from = this.move.GetFromSquare(move);
-            Square to = this.move.GetToSquare(move);
-            Piece capture = this.move.GetCapturedPiece(move);
+            Square from = Move.GetFromSquare(move);
+            Square to = Move.GetToSquare(move);
+            Piece capture = Move.GetCapturedPiece(move);
             Color side = position.side;
 
             //if (capture == Piece.bK || capture == Piece.wK)
@@ -760,7 +664,7 @@ namespace OnionEngine
             //}
 
             // capture an en passant pawn
-            if (this.move.GetEnPassantCapture(move))
+            if (Move.GetEnPassantCapture(move))
             {
                 if (side == Color.w)
                 {
@@ -771,7 +675,7 @@ namespace OnionEngine
                     RemovePiece(position, to + 8);
                 }
             }
-            else if (this.move.GetCastle(move))
+            else if (Move.GetCastle(move))
             {
                 switch (to)
                 {
@@ -793,17 +697,12 @@ namespace OnionEngine
                 }
             }
 
-            if (from == Square.H8 && to == Square.H4)
-            {
-                
-            }
-
             // castle
-            position.positionKey = HashCastle(position);
+            position.positionKey = hash.HashCastle(position);
             position.castlePerm &= CastleHelper[(int)from];
             position.castlePerm &= CastleHelper[(int)to];
             position.enPassant = Square.INVALID;
-            position.positionKey = HashCastle(position);
+            position.positionKey = hash.HashCastle(position);
 
             position.fiftyMoveCounter++;
 
@@ -817,7 +716,7 @@ namespace OnionEngine
             if (position.pieceTypeBySquare[(int)to] == Piece.bP || position.pieceTypeBySquare[(int)to] == Piece.wP)
             {
                 position.fiftyMoveCounter = 0;
-                if (this.move.GetPawnDoubleMove(move))
+                if (Move.GetPawnDoubleMove(move))
                 {
                     if (side == Color.w)
                     {
@@ -829,20 +728,20 @@ namespace OnionEngine
                     }
 
 
-                    position.positionKey = HashEnPassant(position);
+                    position.positionKey = hash.HashEnPassant(position);
                 }
-                else if (this.move.GetPromotedPiece(move) != Piece.EMPTY)
+                else if (Move.GetPromotedPiece(move) != Piece.EMPTY)
                 {
                     RemovePiece(position, to);
-                    AddPiece(position, to, this.move.GetPromotedPiece(move));
+                    AddPiece(position, to, Move.GetPromotedPiece(move));
                 }
 
             }
 
-            //if (position.enPassant != Square.INVALID)
-            //{
-            //    position.positionKey = HashEnPassant(position);
-            //}
+            if (position.enPassant != Square.INVALID)
+            {
+                position.positionKey = hash.HashEnPassant(position);
+            }
 
             // update meta info
             position.ply++;
@@ -875,48 +774,7 @@ namespace OnionEngine
 
         #endregion
 
-        #region bit board manipulation
-        // remove from a single position
-        public ulong RemoveBit(ulong bitBoard, int square)
-        {
-            return (bitBoard & clearMask[square]);
-        }
-        // set a single position
-        public ulong AddBit(ulong bitBoard, int square)
-        {
-            return (bitBoard | setMask[square]);
-        }
 
-        public void PrintBitBoard(ulong bitBoard)
-        {
-            string results = Environment.NewLine;
-
-            ulong shiftMe = 1;
-            Square square;
-            int sq64 = 0;
-
-            for (Rank rank = Rank.Rank_8; rank >= Rank.Rank_1; rank--)
-            {
-                for (File file = File.File_A; file <= File.File_H; file++)
-                {
-                    square = moveGenerator.FileRanktoSquare(file, rank);
-                    sq64 = (int)square;
-
-                    if (((shiftMe << sq64) & bitBoard) != 0)
-                    {
-                        results += "X";
-                    }
-                    else
-                    {
-                        results += "-";
-                    }
-                }
-
-                results += Environment.NewLine;
-            }
-            Console.WriteLine(results);
-        }
-        #endregion
 
         #region utility
         private Color PieceToColor(Piece piece)
@@ -930,60 +788,7 @@ namespace OnionEngine
                 return Color.b;
             }
         }
-        public void PrintPosition(Position position)
-        {
-            Console.WriteLine("Position: " + position.positionKey.ToString("X"));
-            Console.WriteLine("");
-
-            for (Rank rank = Rank.Rank_8; rank >= Rank.Rank_1; rank--)
-            {
-                Console.Write(rank.ToString() + " ");
-
-                for (File file = File.File_A; file <= File.File_H; file++)
-                {
-                    Square square = moveGenerator.FileRanktoSquare(file, rank);
-                    Piece piece = position.pieceTypeBySquare[(int)square];
-
-                    if (piece == Piece.EMPTY)
-                    {
-                        Console.Write("  . ");
-                    }
-                    else
-                    {
-                        Console.Write(" " + piece.ToString() + " ");
-                    }
-                }
-                Console.WriteLine("");
-                Console.WriteLine("");
-            }
-
-            Console.WriteLine("         A   B   C   D   E   F   G   H");
-            Console.WriteLine("");
-            Console.Write(string.Format("Side: {0} En Passant: {1} Castle: ", position.side, position.enPassant));
-
-            // castle permission print
-            // bit and operation
-            if ((position.castlePerm & (int)Castle.WKCA) != 0)
-            {
-                Console.Write("K");
-            }
-            if ((position.castlePerm & (int)Castle.WQCA) != 0)
-            {
-                Console.Write("Q");
-            }
-            if ((position.castlePerm & (int)Castle.BKCA) != 0)
-            {
-                Console.Write("k");
-            }
-            if ((position.castlePerm & (int)Castle.BQCA) != 0)
-            {
-                Console.Write("q");
-            }
-
-            Console.WriteLine("");
-            Console.WriteLine("");
-
-        }
+        
         #endregion
 
         // return true if the move can be made from this position and is legal
@@ -991,6 +796,7 @@ namespace OnionEngine
         {
             // get a list of all moves for this position
             int[] moves = moveGenerator.GenerateAllMoves(position);
+            Console.WriteLine("Board MoveExists GenerateMoves");
 
             // look for a matching legal move
             foreach (int n in moves)

@@ -1,8 +1,7 @@
-﻿
-
-namespace OnionEngine
+﻿namespace OnionEngine
 {
     using System.Collections.Generic;
+
     class Evaluate
     {
 
@@ -21,7 +20,7 @@ namespace OnionEngine
                                     0,0,0,4,4,3,0,0,
                                     2,1,0,2,2,1,1,2,
                                     4,4,4,1,1,4,4,4,
-                                    0,0,0,0,0,0,0,0,};
+                                    0,0,0,0,0,0,0,0};
 
         // knight
         int[] knightLocationValue = { 0,1,1,1,1,1,1,0,
@@ -31,7 +30,7 @@ namespace OnionEngine
                                       1,2,4,5,5,4,2,1,
                                       1,2,3,4,4,3,2,1,
                                       1,1,1,1,1,1,1,1,
-                                      0,1,1,0,0,1,1,0,};
+                                      0,1,1,0,0,1,1,0};
 
         // bishop
         int[] bishopLocationValue = { 0,1,1,1,1,1,1,0,
@@ -41,7 +40,7 @@ namespace OnionEngine
                                       1,2,4,5,5,4,2,1,
                                       1,2,3,4,4,3,2,1,
                                       1,1,1,1,1,1,1,1,
-                                      0,1,1,0,0,1,1,0,};
+                                      0,1,1,0,0,1,1,0};
 
         // rook
         int[] rookLocationValue = { 4,4,4,5,5,4,4,4,
@@ -51,7 +50,7 @@ namespace OnionEngine
                                     1,2,3,4,4,3,2,1,
                                     1,1,2,2,2,2,1,1,
                                     3,4,4,4,4,4,4,3,
-                                    2,0,0,4,3,4,0,2,};
+                                    2,0,0,4,3,4,0,2};
         // queen
         int[] queenLocationValue = { 1,1,2,3,3,2,1,1,
                                      2,3,4,5,5,4,3,2,
@@ -60,7 +59,7 @@ namespace OnionEngine
                                      3,3,1,4,4,1,3,1,
                                      2,3,0,3,1,2,2,1,
                                      1,2,4,2,4,2,1,0,
-                                     0,1,4,5,3,1,5,0,};
+                                     0,1,4,5,3,1,5,0};
 
         // king
         int[] kingLocationValue = { 0,0,0,0,0,0,0,0,
@@ -70,13 +69,12 @@ namespace OnionEngine
                                     0,0,1,2,2,1,0,0,
                                     0,0,0,1,1,0,0,0,
                                     0,0,0,1,1,2,0,0,
-                                    0,0,4,1,3,0,5,0,};
+                                    0,0,4,1,3,0,5,0};
         // all arrays in one
         List<int[]> locationValues = new List<int[]>();
 
         #endregion
-
-        private BitBoards bitBoardController;
+        
 
         // helper that flips an array based on side 
         int[] flip = { 56,57,58,59,60,61,62,63,
@@ -88,17 +86,14 @@ namespace OnionEngine
                        08,09,10,11,12,13,14,15,
                        00,01,02,03,04,05,06,07};
 
-        public Evaluate(BitBoards bitBoadController)
+        public Evaluate()
         {
-            this.bitBoardController = bitBoadController;
-
             locationValues.Add(pawnLocationValue);
             locationValues.Add(knightLocationValue);
             locationValues.Add(bishopLocationValue);
             locationValues.Add(rookLocationValue);
             locationValues.Add(queenLocationValue);
             locationValues.Add(kingLocationValue);
-
         }
 
 
@@ -109,17 +104,17 @@ namespace OnionEngine
             int side = (int)position.side * 6;
             
             // each piece type
-            score += position.pieceNumber[0 + side] * 100;
-            score += position.pieceNumber[1 + side] * 300;
-            score += position.pieceNumber[2 + side] * 300;
-            score += position.pieceNumber[3 + side] * 500;
-            score += position.pieceNumber[4 + side] * 1000;
+            score += position.pieceCount[0 + side] * 100;
+            score += position.pieceCount[1 + side] * 300;
+            score += position.pieceCount[2 + side] * 300;
+            score += position.pieceCount[3 + side] * 500;
+            score += position.pieceCount[4 + side] * 1000;
 
-            score -= position.pieceNumber[6 - side] * 100;
-            score -= position.pieceNumber[7 - side] * 300;
-            score -= position.pieceNumber[8 - side] * 300;
-            score -= position.pieceNumber[9 - side] * 500;
-            score -= position.pieceNumber[10 - side] * 1000;
+            score -= position.pieceCount[6 - side] * 100;
+            score -= position.pieceCount[7 - side] * 300;
+            score -= position.pieceCount[8 - side] * 300;
+            score -= position.pieceCount[9 - side] * 500;
+            score -= position.pieceCount[10 - side] * 1000;
 
             return score;
         }
@@ -138,7 +133,7 @@ namespace OnionEngine
                 while (pieceBitboard != 0)  // when all bits are removed or there is no piece of this type it will equal 0
                 {
                     // returns an int location (0-63) and removes that bit from the bitboard
-                    int location = bitBoardController.PopBit(ref pieceBitboard);
+                    int location = BitBoard.PopBit(ref pieceBitboard);
 
 
                     score += (locationValues[i])[flip[location]] * 10;
@@ -154,7 +149,7 @@ namespace OnionEngine
                 while (pieceBitboard != 0)  // when all bits are removed or there is no piece of this type it will equal 0
                 {
                     // returns an int location (0-63) and removes that bit from the bitboard
-                    int location = bitBoardController.PopBit(ref pieceBitboard);
+                    int location = BitBoard.PopBit(ref pieceBitboard);
 
                     score -= (locationValues[i])[location] * 10;
                 }

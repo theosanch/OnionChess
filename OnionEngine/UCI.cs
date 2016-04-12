@@ -14,16 +14,16 @@ namespace OnionEngine
 
         public void Loop()
         {
-            // no need to keep track of all the commands that will be happening
-            //Console.BufferHeight = 10;
+            string version = System.Reflection.Assembly.GetExecutingAssembly()
+                                                                    .GetName()
+                                                                    .Version
+                                                                    .ToString();
 
-            //Console.WriteLine("id name Onion 0.1");
-            //Console.WriteLine("id author Theodore J. Sanchez");
+            Console.WriteLine(string.Format("Onion {0} by Theodore J. Sanchez", version));
 
-            Console.WriteLine("Onion v0.13 by Theodore J. Sanchez");
+            bool run = true;
 
-
-            while (true)
+            while (run)
             {
                 // get input - separate input by spaces
                 string[] command = Console.ReadLine().Split(' ');
@@ -39,9 +39,23 @@ namespace OnionEngine
                 }
                 else if (command[0] == "position")
                 {
+                    
+                    position = new string[6];
+                    for (int i = 0; i < position.Length; i++)
+                    {
+                        position[i] = command[i + 2];
+                    }
 
-                    //ParsePosition(command);
-                    position = command;
+                    brain.SetPosition(position);
+
+
+                    if(command.Length > 8 && command[8] == "moves")
+                    {
+                        for (int i = 9; i < command.Length; i++)
+                        {
+                            brain.MakeMove(command[i]);
+                        }
+                    }
                 }
                 else if (command[0] == "ucinewgame")
                 {
@@ -50,11 +64,11 @@ namespace OnionEngine
                 else if (command[0] == "go")
                 {
                     //brain.Go(command);
-                    brain.Go(position,command);
+                    brain.Go(position, command);
                 }
                 else if (command[0] == "quit") // close engine
                 {
-                    break;
+                    run = false;
                 }
                 else if (command[0] == "uci")
                 {
@@ -72,27 +86,11 @@ namespace OnionEngine
                 {
                     brain.Test(int.Parse(command[1]));
                 }
+                else
+                {
+
+                }
             }
         }
-
-        //private void ParsePosition(string[] command)
-        //{
-        //    int i = 0;
-        //    if (command[1] == "startpos")   // set up the starting position
-        //    {
-        //        brain.SetPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        //        i = 3;
-        //    }
-        //    else if (command[1] == "fen")
-        //    {
-        //        brain.SetPosition(command[2] + " " + command[3] + " " + command[4] + " " + command[5] + " " + command[6] + " " + command[7]);
-        //        i = 9;
-        //    }
-
-        //    for (i = i + 0; i < command.Length; i++)
-        //    {
-        //        brain.MakeMove(command[i]);
-        //    }
-        //}
     }
 }

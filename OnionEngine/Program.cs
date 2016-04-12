@@ -1,4 +1,5 @@
-﻿namespace OnionEngine
+﻿
+namespace OnionEngine
 {
     class Program
     {

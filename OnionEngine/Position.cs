@@ -3,6 +3,10 @@ namespace OnionEngine
 {
     class Position
     {
+        // TODO 
+        // properties that calculate pieceTypeBySquare and pieceSquareByType
+
+
         // light weight class to handle a single position
         // a struct might have better performance.
 
@@ -33,7 +37,7 @@ namespace OnionEngine
         public Square[,] pieceSquareByType = new Square[12, 10]; // needs to be initialized inside reset board method
 
         // how many of each piece type?
-        public int[] pieceNumber = new int[12]; // this list helps with interacting with the pieceSquareByType array
+        public int[] pieceCount = new int[12]; // this list helps with interacting with the pieceSquareByType array
         #endregion
 
         #region bitboards
@@ -77,7 +81,7 @@ namespace OnionEngine
 
             results.pieceTypeBySquare = new Piece[64];
             results.pieceSquareByType = new Square[12, 10];
-            results.pieceNumber = new int[12];
+            results.pieceCount = new int[12];
 
             results.materialScore = new int[2];
 
@@ -97,7 +101,7 @@ namespace OnionEngine
 
                 if (i < 12)
                 {
-                    results.pieceNumber[i] = this.pieceNumber[i];
+                    results.pieceCount[i] = this.pieceCount[i];
 
                     if (i < 2)
                     {
@@ -119,6 +123,62 @@ namespace OnionEngine
 
 
             return results;
+        }
+
+        override public string ToString()
+        {
+            string result = "";
+            result = "Position: " + positionKey.ToString("X");
+            result += "\n";
+
+            for (Rank rank = Rank.Rank_8; rank >= Rank.Rank_1; rank--)
+            {
+                result += (rank.ToString() + " ");
+
+                for (File file = File.File_A; file <= File.File_H; file++)
+                {
+                    Square square = Move.FileRanktoSquare(file, rank);
+                    Piece piece = pieceTypeBySquare[(int)square];
+
+                    if (piece == Piece.EMPTY)
+                    {
+                        result += ("  . ");
+                    }
+                    else
+                    {
+                        result += (" " + piece.ToString() + " ");
+                    }
+                }
+                result += "\n\n";
+            }
+
+            result += ("         A   B   C   D   E   F   G   H");
+            result += "\n";
+            result += (string.Format("Side: {0} En Passant: {1} Castle: ", side, enPassant));
+
+            // castle permission print
+            // bit and operation
+            if ((castlePerm & (int)Castle.WKCA) != 0)
+            {
+                result += ("K");
+            }
+            if ((castlePerm & (int)Castle.WQCA) != 0)
+            {
+                result += ("Q");
+            }
+            if ((castlePerm & (int)Castle.BKCA) != 0)
+            {
+                result += ("k");
+            }
+            if ((castlePerm & (int)Castle.BQCA) != 0)
+            {
+                result += ("q");
+            }
+
+            result += "\n\n";
+
+            return result;
+
         }
     }
 }

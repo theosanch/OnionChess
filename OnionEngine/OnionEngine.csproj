@@ -96,11 +96,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BitBoards.cs" />
-    <Compile Include="PositionController.cs" />
+    <Compile Include="BitBoard.cs" />
+    <Compile Include="Board.cs" />
     <Compile Include="Brain.cs" />
     <Compile Include="Evaluate.cs" />
-    <Compile Include="MoveController.cs" />
+    <Compile Include="Hash.cs" />
+    <Compile Include="Move.cs" />
     <Compile Include="MoveGenerator.cs" />
     <Compile Include="Search.cs" />
     <Compile Include="Test\Perft.cs" />
@@ -113,6 +114,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Test\perftsuite.epd" />
+    <None Include="Test\temp_perftsuite.epd" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
