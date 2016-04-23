@@ -626,11 +626,13 @@ namespace OnionEngine
                         // queen side
                         if ((position.castlePerm & colorKey[(int)position.side + 2]) > 0)
                         {
+                            // the squares from 4 to 1 or 60 to 57
+                            ulong squares = intersectLinesHelper[colorKey[(int)position.side + 4], colorKey[(int)position.side + 8] - 1];
 
-                            ulong squares = intersectLinesHelper[colorKey[(int)position.side + 4], colorKey[(int)position.side + 8]];
                             // is the space empty
                             if ((squares & (enemyLocations | friendlyLocations)) == 0)
                             {
+                                squares = intersectLinesHelper[colorKey[(int)position.side + 4], colorKey[(int)position.side + 8]];
                                 // is it attacked
                                 int n = 0;
                                 while (squares != 0)

@@ -12,6 +12,7 @@ namespace OnionEngine
         ulong key;
 
         public ulong leafNodes;
+        public List<string> info = new List<string>();
 
 
 
@@ -47,16 +48,22 @@ namespace OnionEngine
 
         public ulong Test(Position position, int depth)
         {
+            info = new List<string>(); // results saved in this list
+
             key = position.positionKey;
+
+            // print current position for testing purposes
             Console.Write(position.ToString());
             Console.WriteLine("");
+
+            // timer
             DateTime start = DateTime.Now;
 
-            int[] moveList = moveGenerator.GenerateAllMoves(position);
+            int[] moves = moveGenerator.GenerateAllMoves(position);
 
-            for (int moveNumber = 0; moveNumber < moveList.Length; moveNumber++)
+            for (int moveNumber = 0; moveNumber < moves.Length; moveNumber++)
             {
-                int n = board.MakeMove(ref position, moveList[moveNumber]);
+                int n = board.MakeMove(ref position, moves[moveNumber]);
                 // if the king is in check
                 if (n != 0)
                 {
@@ -70,12 +77,21 @@ namespace OnionEngine
                 }
                 board.UndoMove(ref position);
 
-                Console.WriteLine((moveNumber + 1).ToString("D2") + " " + Move.ToString(moveList[moveNumber]) + ": " + (leafNodes - cumulativeNodes).ToString("D"));
+                Console.WriteLine((moveNumber + 1).ToString("D2") + " " + Move.ToString(moves[moveNumber]) + ": " + (leafNodes - cumulativeNodes).ToString("D"));
+
+                info.Add(Move.ToString(moves[moveNumber]) + " " + (leafNodes - cumulativeNodes).ToString());
             }
 
             Console.WriteLine("Total nodes:" + leafNodes.ToString("n"));
             TimeSpan elapsed = (DateTime.Now - start);
             Console.WriteLine(string.Format("Time: {0}:{1}:{2}:{3}", elapsed.Hours, elapsed.Minutes, elapsed.Seconds, elapsed.Milliseconds));
+
+            // print current position for testing purposes
+            // is the current position returned to its starting state
+            /*Console.WriteLine("");
+            Console.WriteLine("");
+            Console.Write(position.ToString());
+            Console.WriteLine("");*/
 
             return leafNodes;
         }
