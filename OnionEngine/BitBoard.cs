@@ -105,7 +105,6 @@ namespace OnionEngine
         static BitBoard()
         {
             InitBitMasks();
-            
         }
 
         #region initialization
@@ -141,6 +140,7 @@ namespace OnionEngine
 
             return count;
         }
+        // remove a bit form the bit board and return a bitboard of that single bit
         public static int PopBit(ref ulong bitBoard)
         {
             ulong b = bitBoard ^ (bitBoard - 1);
@@ -199,7 +199,7 @@ namespace OnionEngine
         // convert a square number to a bitboard with that one square "selected"
         public static ulong SquareToBit(int square)
         {
-            return 1UL << square;
+            return  1UL<<square;
         }
 
     }

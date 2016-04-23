@@ -16,9 +16,11 @@ namespace OnionEngine
         // whose turn it is to move.
         public Color side = Color.both;
         // what square is currently available for en passant
-        public Square enPassant = Square.INVALID;
+        public Square enPassantSquare = Square.INVALID;
+
         // what the castle status is. A calculation is done using the Castle enumerator.
-        public int castlePerm = 0;
+        // a four bit number is used to store what the castle status is
+        public int castleStatus = 0;
 
         // fifty move rule counter
         public int fiftyMoveCounter;
@@ -28,24 +30,12 @@ namespace OnionEngine
 
         #region piece information
 
-        #region piece lists
-        // what piece type is on each square
-        public Piece[] pieceTypeBySquare = new Piece[64];
-        // track location of each piece in a single list. 
-        // 12: each piece type.
-        // 10: up to ten pieces for that type.
-        public Square[,] pieceSquareByType = new Square[12, 10]; // needs to be initialized inside reset board method
-
-        // how many of each piece type?
-        public int[] pieceCount = new int[12]; // this list helps with interacting with the pieceSquareByType array
-        #endregion
-
         #region bitboards
+        
+        // each location represents a piece type for that color
+        // 0 = white pawn, 1 = 
         public ulong[] locations = new ulong[12];
 
-        // pseudo legal captures and attacks for each piece type including all for each color [13-14]
-        public ulong[] captures = new ulong[14];    // both are generated during move generation
-        public ulong[] attacks = new ulong[14];
         #endregion
 
         public ulong WhitePosition
@@ -63,8 +53,6 @@ namespace OnionEngine
             }
         }
 
-        public int[] materialScore = new int[2];
-
         #endregion
 
         public Position()
@@ -72,55 +60,50 @@ namespace OnionEngine
 
         }
 
+        // given a square return what type of piece is on that square
+        public Piece GetPieceTypeBySquare(Square square)
+        {
+            // a bitboard with only the square selected
+            ulong bitboardSquare = BitBoard.SquareToBit((int)square);
+
+            // check each piece type
+            for (int i = 0; i < 12; i++)
+            {
+                // if there is a piece in that square
+                if((locations[i] & bitboardSquare) != 0)
+                {
+                    // return that piece type
+                    return (Piece)(i + 1);
+                }
+            }
+
+            // nothing found, return empty
+            return Piece.EMPTY;
+        }
+        // set the piece on the given square - don't set to empty
+        public void SetPiece(Square square, Piece piece)
+        {
+            locations[((int)piece) - 1] = BitBoard.AddBit(locations[((int)piece) - 1], (int)square);
+        }
+
+        // remove piece 
+        public void RemovePiece(Square square, Piece piece)
+        {
+            locations[(int)piece - 1] = BitBoard.RemoveBit(locations[(int)piece - 1], (int)square);
+        }
+
 
         // when searching through different moves a copy of the previous move is needed
         public Position Clone()
         {
             // this copies all value types
-            Position results = (Position)this.MemberwiseClone(); // "this" used just for clarity
-
-            results.pieceTypeBySquare = new Piece[64];
-            results.pieceSquareByType = new Square[12, 10];
-            results.pieceCount = new int[12];
-
-            results.materialScore = new int[2];
-
-            results.locations = new ulong[12];
-            results.captures = new ulong[14];
-            results.attacks = new ulong[14];
+            Position results = (Position)this.MemberwiseClone(); // "this" used just for clarity          
 
             // ref type copying - arrays are ref type
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < 12; i++)
             {
-                results.pieceTypeBySquare[i] = this.pieceTypeBySquare[i];
-                if (i < 14)
-                {
-                    results.captures[i] = this.captures[i];
-                    results.attacks[i] = this.attacks[i];
-                }
-
-                if (i < 12)
-                {
-                    results.pieceCount[i] = this.pieceCount[i];
-
-                    if (i < 2)
-                    {
-                        results.materialScore[i] = this.materialScore[i];
-                    }
-
-                    // [13,10] array
-                    for (int n = 0; n < 10; n++)
-                    {
-                        results.pieceSquareByType[i, n] = this.pieceSquareByType[i, n];
-                    }
-
-
-
-                    results.locations[i] = this.locations[i];
-
-                }
+                results.locations[i] = this.locations[i];                
             }
-
 
             return results;
         }
@@ -138,7 +121,7 @@ namespace OnionEngine
                 for (File file = File.File_A; file <= File.File_H; file++)
                 {
                     Square square = Move.FileRanktoSquare(file, rank);
-                    Piece piece = pieceTypeBySquare[(int)square];
+                    Piece piece = GetPieceTypeBySquare(square);
 
                     if (piece == Piece.EMPTY)
                     {
@@ -154,23 +137,23 @@ namespace OnionEngine
 
             result += ("         A   B   C   D   E   F   G   H");
             result += "\n";
-            result += (string.Format("Side: {0} En Passant: {1} Castle: ", side, enPassant));
+            result += (string.Format("Side: {0} En Passant: {1} Castle: ", side, enPassantSquare));
 
             // castle permission print
             // bit and operation
-            if ((castlePerm & (int)Castle.WKCA) != 0)
+            if ((castleStatus & (int)Castle.WKCA) != 0)
             {
                 result += ("K");
             }
-            if ((castlePerm & (int)Castle.WQCA) != 0)
+            if ((castleStatus & (int)Castle.WQCA) != 0)
             {
                 result += ("Q");
             }
-            if ((castlePerm & (int)Castle.BKCA) != 0)
+            if ((castleStatus & (int)Castle.BKCA) != 0)
             {
                 result += ("k");
             }
-            if ((castlePerm & (int)Castle.BQCA) != 0)
+            if ((castleStatus & (int)Castle.BQCA) != 0)
             {
                 result += ("q");
             }

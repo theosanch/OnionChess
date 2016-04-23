@@ -64,7 +64,7 @@ namespace OnionEngine
             // check each square
             for (int squareNumber = 0; squareNumber < 64; squareNumber++)
             {
-                piece = position.pieceTypeBySquare[squareNumber];
+                piece = position.GetPieceTypeBySquare((Square)squareNumber);
                 if (piece != Piece.EMPTY && piece != Piece.INVALID)
                 {
                     // hash key if it is a valid square
@@ -79,13 +79,13 @@ namespace OnionEngine
             }
 
             // if there is en passant available
-            if (position.enPassant != Square.INVALID)
+            if (position.enPassantSquare != Square.INVALID)
             {
-                finalKey ^= pieceKeys[(int)Piece.EMPTY, (int)position.enPassant];
+                finalKey ^= pieceKeys[(int)Piece.EMPTY, (int)position.enPassantSquare];
             }
 
             // castle status
-            finalKey ^= castleKeys[position.castlePerm];
+            finalKey ^= castleKeys[position.castleStatus];
 
             return finalKey;
         }
@@ -96,7 +96,7 @@ namespace OnionEngine
         }
         public ulong HashCastle(Position position)
         {
-            return position.positionKey ^= castleKeys[position.castlePerm];
+            return position.positionKey ^= castleKeys[position.castleStatus];
         }
         public ulong HashSide(Position position)
         {
@@ -104,7 +104,7 @@ namespace OnionEngine
         }
         public ulong HashEnPassant(Position position)
         {
-            return position.positionKey ^= pieceKeys[(int)Piece.EMPTY, (int)position.enPassant];
+            return position.positionKey ^= pieceKeys[(int)Piece.EMPTY, (int)position.enPassantSquare];
         }
         #endregion
 

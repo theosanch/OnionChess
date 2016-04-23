@@ -102,19 +102,19 @@
         {
             int score = 0;
             int side = (int)position.side * 6;
-            
-            // each piece type
-            score += position.pieceCount[0 + side] * 100;
-            score += position.pieceCount[1 + side] * 300;
-            score += position.pieceCount[2 + side] * 300;
-            score += position.pieceCount[3 + side] * 500;
-            score += position.pieceCount[4 + side] * 1000;
 
-            score -= position.pieceCount[6 - side] * 100;
-            score -= position.pieceCount[7 - side] * 300;
-            score -= position.pieceCount[8 - side] * 300;
-            score -= position.pieceCount[9 - side] * 500;
-            score -= position.pieceCount[10 - side] * 1000;
+            // each piece type
+            score += BitBoard.CountBits(position.locations[0 + side]) * 100;
+            score += BitBoard.CountBits(position.locations[1 + side]) * 300;
+            score += BitBoard.CountBits(position.locations[2 + side]) * 300;
+            score += BitBoard.CountBits(position.locations[3 + side]) * 500;
+            score += BitBoard.CountBits(position.locations[4 + side]) * 1000;
+
+            score -= BitBoard.CountBits(position.locations[6 + side]) * 100;
+            score -= BitBoard.CountBits(position.locations[7 + side]) * 300;
+            score -= BitBoard.CountBits(position.locations[8 + side]) * 300;
+            score -= BitBoard.CountBits(position.locations[9 + side]) * 500;
+            score -= BitBoard.CountBits(position.locations[10 + side]) * 1000;
 
             return score;
         }

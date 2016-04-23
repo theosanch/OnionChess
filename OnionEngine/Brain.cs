@@ -118,7 +118,7 @@ namespace OnionEngine
             //currentPosition = board.ParseFen("3rk1r1/8/8/8/8/p6p/P6P/R3K2R w KQ - 0 1".Split(' '));
             //currentPosition = board.ParseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".Split(' '));
             //currentPosition = board.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
-            //currentPosition = board.ParseFen("r3k3/8/8/8/8/8/4r3/1R2K2R w K - 0 1".Split(' '));
+            currentPosition = board.ParseFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8".Split(' '));
 
             Perft perft = new Perft();
 
@@ -131,20 +131,21 @@ namespace OnionEngine
             //currentPosition = board.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
             //currentPosition = board.ParseFen("4k3/8/8/8/8/r6r/P6P/R3K2R w KQ - 0 1".Split(' '));
             //currentPosition = board.ParseFen("4k3/8/8/8/8/8/8/4K2R w K - 0 1".Split(' '));
+            //currentPosition = board.ParseFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8".Split(' '));
 
-            /*
-            Console.Write(currentPosition.ToString());
+            
+            //Console.Write(currentPosition.ToString());
 
-            SearchSettings searchData = new SearchSettings();
-            searchData.depth = plyDepth;
-            search.IterativeSearch(currentPosition.Clone(), ref searchData);
-            */
+            //SearchSettings searchData = new SearchSettings();
+            //searchData.depth = plyDepth;
+            //search.IterativeSearch(currentPosition.Clone(), ref searchData);
+            
 
             Perft perft = new Perft();
             perft.SuiteTest(plyDepth);
 
 
-            //ValidatePosition("n1n5/1Pk5/8/8/8/8/5Kp1/5N1N b - - 0 1", plyDepth);
+            //ValidatePosition("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", plyDepth);
 
 
         }

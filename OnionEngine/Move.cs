@@ -91,25 +91,25 @@ namespace OnionEngine
 
             #region pawn start
             // if it was a pawn double move
-            if (position.pieceTypeBySquare[(int)from] == Piece.wP)
+            if (position.GetPieceTypeBySquare(from) == Piece.wP)
             {
                 if (((int)from >> 3) == 1 && ((int)to >> 3) == 3)
                 {
-                    return ToInt(from, to, position.pieceTypeBySquare[(int)to], Piece.EMPTY, 3);
+                    return ToInt(from, to, position.GetPieceTypeBySquare(to), Piece.EMPTY, 3);
                 }
             }
-            else if (position.pieceTypeBySquare[(int)from] == Piece.bP)
+            else if (position.GetPieceTypeBySquare(from) == Piece.bP)
             {
                 if (((int)from >> 3) == 6 && ((int)to >> 3) == 4)
                 {
-                    return ToInt(from, to, position.pieceTypeBySquare[(int)to], Piece.EMPTY, 3);
+                    return ToInt(from, to, position.GetPieceTypeBySquare(to), Piece.EMPTY, 3);
                 }
             }
             #endregion
 
-            if (to == position.enPassant)
+            if (to == position.enPassantSquare)
             {
-                return ToInt(from, to, position.pieceTypeBySquare[(int)to], Piece.EMPTY,1);
+                return ToInt(from, to, position.GetPieceTypeBySquare(to), Piece.EMPTY,1);
             }
 
             // is there a promotion piece
@@ -165,7 +165,7 @@ namespace OnionEngine
             }
             #endregion
 
-            return ToInt(from,to,position.pieceTypeBySquare[(int)to],promotion);
+            return ToInt(from,to, position.GetPieceTypeBySquare(to), promotion);
         }
 
         // get a string of the move in standard notation
