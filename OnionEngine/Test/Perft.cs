@@ -63,6 +63,7 @@ namespace OnionEngine
 
             for (int moveNumber = 0; moveNumber < moves.Length; moveNumber++)
             {
+
                 int n = board.MakeMove(ref position, moves[moveNumber]);
                 // if the king is in check
                 if (n != 0)

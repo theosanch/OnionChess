@@ -290,14 +290,16 @@ namespace OnionEngine
         }
         private void AddPawnCapture(Square from, Square to, Piece captured, int side)
         {
-            int[] rank = { 7, 0 };
+            int[] rank = { 7, 0 }; // the last rank for each side
+            int[] colorHelper = { 0, 6 };
+
             // is it a promotion move
             if ((int)to >> 3 == rank[side])
             {
-                AddCaptureMove(Move.ToInt(from, to, captured, Piece.wQ));
-                AddCaptureMove(Move.ToInt(from, to, captured, Piece.wR));
-                AddCaptureMove(Move.ToInt(from, to, captured, Piece.wB));
-                AddCaptureMove(Move.ToInt(from, to, captured, Piece.wN));
+                AddCaptureMove(Move.ToInt(from, to, captured, Piece.wQ + colorHelper[side]));
+                AddCaptureMove(Move.ToInt(from, to, captured, Piece.wR + colorHelper[side]));
+                AddCaptureMove(Move.ToInt(from, to, captured, Piece.wB + colorHelper[side]));
+                AddCaptureMove(Move.ToInt(from, to, captured, Piece.wN + colorHelper[side]));
                 return;
             }
 

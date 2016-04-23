@@ -144,7 +144,7 @@ namespace OnionEngine
             perft.SuiteTest(plyDepth);
 
 
-            //ValidatePosition("8/PPPk4/8/8/8/8/4Kppp/8 b - - 0 1", plyDepth);
+            //ValidatePosition("n1n5/1Pk5/8/8/8/8/5Kp1/5N1N b - - 0 1", plyDepth);
 
 
         }
