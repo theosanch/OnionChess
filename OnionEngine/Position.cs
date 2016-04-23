@@ -14,7 +14,7 @@ namespace OnionEngine
         // the unique key for this position
         public ulong positionKey;
         // whose turn it is to move.
-        public Color side = Color.Both;
+        public Color side = Color.both;
         // what square is currently available for en passant
         public Square enPassant = Square.INVALID;
         // what the castle status is. A calculation is done using the Castle enumerator.

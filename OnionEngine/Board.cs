@@ -32,7 +32,7 @@ namespace OnionEngine
     }
     enum Color
     {
-        w, b, Both
+        white, black, both
     }
 
     // helper enum
@@ -133,7 +133,7 @@ namespace OnionEngine
             #endregion
 
             #region meta data
-            position.side = Color.Both;
+            position.side = Color.both;
             position.enPassant = Square.INVALID;
             position.fiftyMoveCounter = 0;
 
@@ -298,11 +298,11 @@ namespace OnionEngine
             #region active color
             if (fen[1] == "w")
             {
-                position.side = Color.w;
+                position.side = Color.white;
             }
             else if (fen[1] == "b")
             {
-                position.side = Color.b;
+                position.side = Color.black;
             }
             else
             {
@@ -666,7 +666,7 @@ namespace OnionEngine
             // capture an en passant pawn
             if (Move.GetEnPassantCapture(move))
             {
-                if (side == Color.w)
+                if (side == Color.white)
                 {
                     RemovePiece(position, to - 8);
                 }
@@ -718,7 +718,7 @@ namespace OnionEngine
                 position.fiftyMoveCounter = 0;
                 if (Move.GetPawnDoubleMove(move))
                 {
-                    if (side == Color.w)
+                    if (side == Color.white)
                     {
                         position.enPassant = to - 8;
                     }
@@ -748,9 +748,9 @@ namespace OnionEngine
             position.side = 1 - side;
 
             // is the king attacked
-            if (side == Color.w)
+            if (side == Color.white)
             {
-                if (moveGenerator.IsSquareAttacked(position, position.locations[(int)Piece.wK - 1], Color.b))
+                if (moveGenerator.IsSquareAttacked(position, position.locations[(int)Piece.wK - 1], Color.black))
                 {
                     UndoMove(ref position);
                     return 1;
@@ -758,7 +758,7 @@ namespace OnionEngine
             }
             else
             {
-                if (moveGenerator.IsSquareAttacked(position, position.locations[(int)Piece.bK - 1], Color.w))
+                if (moveGenerator.IsSquareAttacked(position, position.locations[(int)Piece.bK - 1], Color.white))
                 {
                     UndoMove(ref position);
                     return 1;
@@ -781,11 +781,11 @@ namespace OnionEngine
         {
             if ((int)piece < 7)
             {
-                return Color.w;
+                return Color.white;
             }
             else
             {
-                return Color.b;
+                return Color.black;
             }
         }
         

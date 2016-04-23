@@ -73,7 +73,7 @@ namespace OnionEngine
             }
 
             // if it is whites turn
-            if (position.side == Color.w)
+            if (position.side == Color.white)
             {
                 finalKey ^= sideKey;
             }

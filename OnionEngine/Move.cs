@@ -120,7 +120,7 @@ namespace OnionEngine
                 switch (strMove[4])
                 {
                     case 'q':
-                        if (position.side == Color.w)
+                        if (position.side == Color.white)
                         {
                             promotion = Piece.wQ;
                         }
@@ -130,7 +130,7 @@ namespace OnionEngine
                         }
                         break;
                     case 'n':
-                        if (position.side == Color.w)
+                        if (position.side == Color.white)
                         {
                             promotion = Piece.wN;
                         }
@@ -140,7 +140,7 @@ namespace OnionEngine
                         }
                         break;
                     case 'r':
-                        if (position.side == Color.w)
+                        if (position.side == Color.white)
                         {
                             promotion = Piece.wR;
                         }
@@ -150,7 +150,7 @@ namespace OnionEngine
                         }
                         break;
                     case 'b':
-                        if (position.side == Color.w)
+                        if (position.side == Color.white)
                         {
                             promotion = Piece.wB;
                         }

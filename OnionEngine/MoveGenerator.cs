@@ -271,14 +271,16 @@ namespace OnionEngine
 
         private void AddPawnMove(Square from, Square to, int side)
         {
-            int[] rank = { 7, 0 };
+            int[] rank = { 7, 0 }; // the last rank for each side
+            int[] colorHelper = { 0, 6 };
+
             // is it a promotion move
             if ((int)to >> 3 == rank[side])
             {
-                AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.wQ));
-                AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.wR));
-                AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.wB));
-                AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.wN));
+                AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.wQ + colorHelper[side]));
+                AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.wR + colorHelper[side]));
+                AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.wB + colorHelper[side]));
+                AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.wN + colorHelper[side]));
                 return;
             }
             else

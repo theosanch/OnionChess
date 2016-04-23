@@ -140,11 +140,11 @@ namespace OnionEngine
             search.IterativeSearch(currentPosition.Clone(), ref searchData);
             */
 
-            //Perft perft = new Perft();
-            //perft.SuiteTest(plyDepth);
+            Perft perft = new Perft();
+            perft.SuiteTest(plyDepth);
 
 
-            ValidatePosition("r2qk2r/5Npp/2pb1n2/pp6/4P3/P7/1P1NbPPP/R1BQ1RK1 b kq - 0 1", plyDepth);
+            //ValidatePosition("8/PPPk4/8/8/8/8/4Kppp/8 b - - 0 1", plyDepth);
 
 
         }
@@ -158,7 +158,7 @@ namespace OnionEngine
             Console.WriteLine("");
 
             string move = "";
-            Perft perft = new Perft();
+            
             currentPosition = board.ParseFen(fen.Split(' '));
 
             #region external engine initialization
@@ -191,6 +191,7 @@ namespace OnionEngine
                     Console.WriteLine("making move: " + move);
                     MakeMove(move);
                 }
+                Perft perft = new Perft();
                 perft.Test(currentPosition.Clone(), n);
 
                 Console.WriteLine("");
@@ -259,14 +260,14 @@ namespace OnionEngine
                             positionCommand += " " + move;
 
                             Console.WriteLine("--------------");
-                            Console.WriteLine("incorrect node count found: " + move);
+                            Console.WriteLine("incorrect NODE count found: " + perft.info[i]);
                             break;
                         }
                     }
                     else
                     {
                         // incorrect move found
-                        Console.WriteLine("Incorrect move found: " + perft.info[i]);
+                        Console.WriteLine("Incorrect MOVE found: " + perft.info[i]);
                     }
                 }
 

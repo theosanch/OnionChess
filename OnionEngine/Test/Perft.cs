@@ -67,6 +67,7 @@ namespace OnionEngine
                 // if the king is in check
                 if (n != 0)
                 {
+                    //board.UndoMove(ref position);
                     continue;
                 }
 
