@@ -30,17 +30,21 @@ namespace OnionEngine
         {
             board = new Board();
 
-            currentPosition = board.StartPosition();
+            //currentPosition = board.StartPosition();
+            currentPosition = Fen.ParseFen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1".Split(' '));
 
             transposition = new Transposition();
             search = new Search(transposition);
         }
 
         // start looking for the best move from the current position
-        public int Think()
+        public void Think(int plyDepth)
         {
+            Console.WriteLine(currentPosition.ToString());
 
-            return 0;
+            SearchSettings searchData = new SearchSettings();
+            searchData.depth = plyDepth;
+            search.IterativeSearch(currentPosition.Clone(), ref searchData);
         }
 
         // set the current position
@@ -51,7 +55,7 @@ namespace OnionEngine
         // set the current position
         internal void SetPosition(string[] fen)
         {
-            currentPosition = board.ParseFen(fen);
+            currentPosition = Fen.ParseFen(fen);
         }
 
         //internal void Go(string[] command)
@@ -78,7 +82,7 @@ namespace OnionEngine
 
 
 
-            int bestMove = transposition.GetPositionData(currentPosition.positionKey).bestMove;
+            int bestMove = transposition.GetPositionData(currentPosition.hashKey).bestMove;
             Console.WriteLine("bestmove " + Move.ToString(bestMove));
         }
 
@@ -87,7 +91,7 @@ namespace OnionEngine
             board.MakeMove(ref currentPosition, Move.ParseMove(currentPosition, strMove));
             currentPosition.ply = 0;
 
-            //positionController.PrintPosition(currentPosition);
+            Console.WriteLine(currentPosition.ToString());
         }
 
         // set the current position given the "position" command
@@ -118,7 +122,7 @@ namespace OnionEngine
             //currentPosition = board.ParseFen("3rk1r1/8/8/8/8/p6p/P6P/R3K2R w KQ - 0 1".Split(' '));
             //currentPosition = board.ParseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".Split(' '));
             //currentPosition = board.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
-            currentPosition = board.ParseFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8".Split(' '));
+            //currentPosition = board.ParseFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8".Split(' '));
 
             Perft perft = new Perft();
 
@@ -131,36 +135,38 @@ namespace OnionEngine
             //currentPosition = board.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
             //currentPosition = board.ParseFen("4k3/8/8/8/8/r6r/P6P/R3K2R w KQ - 0 1".Split(' '));
             //currentPosition = board.ParseFen("4k3/8/8/8/8/8/8/4K2R w K - 0 1".Split(' '));
-            //currentPosition = board.ParseFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8".Split(' '));
-
-            
-            //Console.Write(currentPosition.ToString());
-
-            //SearchSettings searchData = new SearchSettings();
-            //searchData.depth = plyDepth;
-            //search.IterativeSearch(currentPosition.Clone(), ref searchData);
-            
-
-            Perft perft = new Perft();
-            perft.SuiteTest(plyDepth);
+            //currentPosition = board.ParseFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8".Split(' '));           
 
 
-            //ValidatePosition("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", plyDepth);
+            //Perft perft = new Perft();
+            //perft.SuiteTest(plyDepth);
+
+            ValidatePosition(plyDepth);
 
 
         }
 
+        public void PerformanceTest(int plyDepth)
+        {
+            Perft perft = new Perft();
+            perft.SuiteTest(plyDepth);
+
+        }
+
+
         // validate move generation with a given position 
         // against a chess engine that is known to have 
         // correct position results
-        private void ValidatePosition(string fen, int depth)
+        public void ValidatePosition(int depth)
         {
+            string fen = Fen.ToFen(currentPosition);
 
             Console.WriteLine("");
+            Console.WriteLine(fen);
 
             string move = "";
             
-            currentPosition = board.ParseFen(fen.Split(' '));
+            currentPosition = Fen.ParseFen(fen.Split(' '));
 
             #region external engine initialization
             Process chessEngine = new Process();

@@ -39,7 +39,7 @@ namespace OnionEngine
         }
     }
 
-    
+
     enum ScoreFlag
     {
         Empty,  // 
@@ -64,21 +64,21 @@ namespace OnionEngine
 
         public Transposition()
         {
-            
-            
+
+
         }
 
 
         #region principle variation
         public void AddPV(ulong key, int move)
         {
-            princableVariationTable.Add(key,move);
+            princableVariationTable.Add(key, move);
         }
 
         private int GetPV(ulong key)
         {
             int move = 0;
-            if (princableVariationTable.TryGetValue(key,out move))
+            if (princableVariationTable.TryGetValue(key, out move))
             {
                 return move;
             }
@@ -87,13 +87,13 @@ namespace OnionEngine
         // send in a copy of the position
         public int[] GetPVLine(Position copyOfPosition, int depth)
         {
-            int move = GetPV(copyOfPosition.positionKey);
+            int move = GetPV(copyOfPosition.hashKey);
             int[] PVLine = new int[depth];
             int count = 0;
 
             while (move != 0 && count < depth)
             {
-                if (board.MoveExists(copyOfPosition,move))
+                if (board.MoveExists(copyOfPosition, move))
                 {
                     board.MakeMove(ref copyOfPosition, move);
                     PVLine[count] = move;
@@ -104,7 +104,7 @@ namespace OnionEngine
                     break;
                 }
 
-                move = GetPV(copyOfPosition.positionKey);
+                move = GetPV(copyOfPosition.hashKey);
             }
 
             return PVLine;
@@ -112,46 +112,55 @@ namespace OnionEngine
         #endregion
 
         #region Transposition Table
-        public EvaluationEntry GetPositionData(ulong positionKey)
+        public EvaluationEntry GetPositionData(ulong hashKey)
         {
             EvaluationEntry entry;
-            if (transpositionTable.TryGetValue(positionKey,out entry))
+            if (transpositionTable.TryGetValue(hashKey, out entry))
             {
                 return entry;
             }
 
-            return new EvaluationEntry(0,0,0,ScoreFlag.Empty);
+            return new EvaluationEntry(0, 0, 0, ScoreFlag.Empty);
         }
 
-        public void AddPositionScore(ulong positionKey,EvaluationEntry entry)
+        public void AddPositionScore(ulong hashKey, EvaluationEntry entry)
         {
-            EvaluationEntry existingEntry = GetPositionData(positionKey);
+            EvaluationEntry existingEntry = GetPositionData(hashKey);
 
+            if (existingEntry.scoreFlag != ScoreFlag.Empty)
+            {
+                transpositionTable.Remove(hashKey);
+            }
+            transpositionTable.Add(hashKey, entry);
+
+            /*
             // add entry if no entry exists
             if (existingEntry.scoreFlag == ScoreFlag.Empty)
             {
-                transpositionTable.Add(positionKey,entry);
+                transpositionTable.Add(hashKey, entry);
             }
             // decide whether an entry should be overridden
             else if (existingEntry.scoreFlag == ScoreFlag.Exact)
             {
-                
+                transpositionTable.Remove(hashKey);
+                transpositionTable.Add(hashKey, entry);
             }
             else
             {
-                if(existingEntry.scoreFlag == ScoreFlag.Beta &&
+                if (existingEntry.scoreFlag == ScoreFlag.Beta &&
                     entry.score < existingEntry.score)
                 {
-                    transpositionTable.Remove(positionKey);
-                    transpositionTable.Add(positionKey, entry);
+                    transpositionTable.Remove(hashKey);
+                    transpositionTable.Add(hashKey, entry);
                 }
                 else if (existingEntry.scoreFlag == ScoreFlag.Alpha &&
                     entry.score > existingEntry.score)
                 {
-                    transpositionTable.Remove(positionKey);
-                    transpositionTable.Add(positionKey, entry);
+                    transpositionTable.Remove(hashKey);
+                    transpositionTable.Add(hashKey, entry);
                 }
             }
+            */
         }
         #endregion
     }

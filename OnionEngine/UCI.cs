@@ -77,7 +77,7 @@ namespace OnionEngine
 
                     Console.WriteLine("uci ok");
                 }
-
+                //--- test stuff
                 else if (command[0] == "perft")
                 {
                     brain.PerftTest(int.Parse(command[1]));
@@ -86,9 +86,21 @@ namespace OnionEngine
                 {
                     brain.Test(int.Parse(command[1]));
                 }
+                else if (command[0] == "makemove")
+                {
+                    brain.MakeMove(command[1]);
+                }
+                else if (command[0] == "think")
+                {
+                    brain.Think(int.Parse(command[1]));
+                }
+                else if (command[0] == "performancetest")
+                {
+                    brain.PerformanceTest(int.Parse(command[1]));
+                }
                 else
                 {
-
+                    Console.WriteLine("unknown command: (" + command[0] + ")");
                 }
             }
         }

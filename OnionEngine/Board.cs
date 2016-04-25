@@ -45,7 +45,7 @@ namespace OnionEngine
     // some data of each made move to be used when unmaking a move
     struct MoveHistory
     {
-        public ulong key;
+        public ulong hashKey;
 
         public int move;
 
@@ -72,7 +72,6 @@ namespace OnionEngine
         
 
         MoveGenerator moveGenerator;
-        Hash hash = new Hash();
 
         // history of moves made   
         private MoveHistory[] moveHistory = new MoveHistory[256];
@@ -106,203 +105,11 @@ namespace OnionEngine
         
 
         #region position misc
-        // reset a given position to an invalid initial state
-        private void ResetBoard(Position position)
-        {
-            #region properties
-            for (int i = 0; i < 12; i++)
-            {
-                position.locations[i] = 0UL;
-            }
-            #endregion
+        
 
-            #region meta data
-            position.side = Color.both;
-            position.enPassantSquare = Square.INVALID;
-            position.fiftyMoveCounter = 0;
-
-            position.ply = 0;
-
-            position.castleStatus = 0;
-
-            position.positionKey = 0ul;
-            #endregion
-        }
-
-        // set up the position given the FEN.split(' ')
-        public Position ParseFen(string[] fen)
-        {
-            Position position = new Position();
-            ResetBoard(position);
-
-            if (fen.Length < 4 || fen.Length > 6)
-            {
-                Console.WriteLine("FEN ERROR: Invalid Format");
-                return null;
-            }
-            // location
-            Rank rank = Rank.Rank_8;
-            File file = File.File_A;
-
-            // piece type
-            Piece piece = Piece.INVALID;
-
-            // how many consecrative empty spaces
-            int count = 0;
-
-            #region piece positions
-            // piece positions
-            foreach (char letter in fen[0])
-            {
-                // move one square minimum for each character
-                count = 1;
-
-                switch (letter)
-                {
-                    case 'p':
-                        piece = Piece.bP;
-                        position.locations[6] = BitBoard.AddBit(position.locations[6], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'n':
-                        piece = Piece.bN;
-                        position.locations[7] = BitBoard.AddBit(position.locations[7], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'b':
-                        piece = Piece.bB;
-                        position.locations[8] = BitBoard.AddBit(position.locations[8], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'r':
-                        piece = Piece.bR;
-                        position.locations[9] = BitBoard.AddBit(position.locations[9], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'q':
-                        piece = Piece.bQ;
-                        position.locations[10] = BitBoard.AddBit(position.locations[10], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'k':
-                        piece = Piece.bK;
-                        position.locations[11] = BitBoard.AddBit(position.locations[11], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'P':
-                        piece = Piece.wP;
-                        position.locations[0] = BitBoard.AddBit(position.locations[0], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'N':
-                        piece = Piece.wN;
-                        position.locations[1] = BitBoard.AddBit(position.locations[1], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'B':
-                        piece = Piece.wB;
-                        position.locations[2] = BitBoard.AddBit(position.locations[2], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'R':
-                        piece = Piece.wR;
-                        position.locations[3] = BitBoard.AddBit(position.locations[3], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'Q':
-                        piece = Piece.wQ;
-                        position.locations[4] = BitBoard.AddBit(position.locations[4], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-                    case 'K':
-                        piece = Piece.wK;
-                        position.locations[5] = BitBoard.AddBit(position.locations[5], (int)Move.FileRanktoSquare(file, rank));
-                        break;
-
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                        piece = Piece.EMPTY;
-                        count = int.Parse(letter.ToString());
-                        //count = (int)(letter - '0');
-                        break;
-
-                    case '/':
-                        rank--;
-                        file = File.File_A;
-                        continue;
-
-                    default:
-                        Console.WriteLine("FEN ERROR: Invalid Character");
-                        return null;
-                }
-
-                for (int i = 0; i < count; i++)
-                {
-
-                    if (piece != Piece.EMPTY)
-                    {
-                        position.SetPiece(Move.FileRanktoSquare(file, rank), piece);
-                    }
-                    file++;
-                }
-            }
-            #endregion
-
-            #region active color
-            if (fen[1] == "w")
-            {
-                position.side = Color.white;
-            }
-            else if (fen[1] == "b")
-            {
-                position.side = Color.black;
-            }
-            else
-            {
-                Console.WriteLine("FEN ERROR: Invalid Color");
-                return null;
-            }
-            #endregion
-
-            #region castling availability
-            // castle 
-            foreach (char character in fen[2])
-            {
-                switch (character)
-                {
-                    case 'K': position.castleStatus |= (int)Castle.WKCA; break;
-                    case 'Q': position.castleStatus |= (int)Castle.WQCA; break;
-                    case 'k': position.castleStatus |= (int)Castle.BKCA; break;
-                    case 'q': position.castleStatus |= (int)Castle.BQCA; break;
-                    case '-': break;
-                    default:
-                        Console.WriteLine("FEN ERROR: Invalid Castle");
-                        return null;
-                }
-            }
-            #endregion
-
-            #region en passant
-            if (fen[3] != "-")
-            {
-                // convert char to int and cast to enum
-                // from char to int to File type
-                file = (File)((int)(((fen[3])[0]) - 'a'));
-                // from number to Rank
-                rank = (Rank)(int.Parse(((fen[3])[1]).ToString()) - 1);
-
-                position.enPassantSquare = Move.FileRanktoSquare(file, rank);
-            }
-            #endregion
-
-            #region fifty move
-            position.fiftyMoveCounter = int.Parse(fen[4]);
-            #endregion
-
-            // generate hash key for this position
-            position.positionKey = hash.GeneratePositionKey(position);
-            
-
-            return position;
-        }
         public Position StartPosition()
         {
-            return ParseFen(C_START_FEN.Split(' '));
+            return Fen.ParseFen(C_START_FEN.Split(' '));
         }
         #endregion
 
@@ -515,13 +322,13 @@ namespace OnionEngine
 
         private void AddPiece(Position position, Square square, Piece piece)
         {
-            position.positionKey = hash.HashPiece(position, piece, square);
+            position.hashKey = Hash.HashPiece(position, piece, square);
             position.SetPiece(square, piece);
         }
         private Piece RemovePiece(Position position, Square square)
         {
             Piece piece = position.GetPieceTypeBySquare(square);
-            position.positionKey = hash.HashPiece(position, piece, square);
+            position.hashKey = Hash.HashPiece(position, piece, square);
             position.RemovePiece(square, piece);
 
             return piece;         
@@ -530,12 +337,7 @@ namespace OnionEngine
         {
             Piece piece = position.GetPieceTypeBySquare(from);
 
-            if(piece == Piece.EMPTY || piece == Piece.INVALID)
-            {
-                Console.WriteLine(position.ToString());
-            }
-
-            position.positionKey = hash.HashPiece(position, piece, from);
+            position.hashKey = Hash.HashPiece(position, piece, from);
 
             // bitboard update            
             position.RemovePiece(from, piece);
@@ -544,13 +346,14 @@ namespace OnionEngine
             return piece;
         }
 
+        #region make unmake
         // return -1 if the king was captured
         // return 0 if the move was made
         // return 1 if the king is in check
         public int MakeMove(ref Position position, int move)
         {
             MoveHistory entry;
-            entry.key = position.positionKey;
+            entry.hashKey = position.hashKey;
             entry.move = move;
             entry.fiftyMoveCounter = position.fiftyMoveCounter;
             entry.enPassantSquare = position.enPassantSquare;
@@ -603,11 +406,11 @@ namespace OnionEngine
             #endregion
 
             // castle
-            position.positionKey = hash.HashCastle(position);
+            position.hashKey = Hash.HashCastle(position);
             position.castleStatus &= CastleHelper[(int)from];
             position.castleStatus &= CastleHelper[(int)to];
             position.enPassantSquare = Square.INVALID;
-            position.positionKey = hash.HashCastle(position);
+            position.hashKey = Hash.HashCastle(position);
 
             position.fiftyMoveCounter++;
 
@@ -637,7 +440,7 @@ namespace OnionEngine
                     }
 
 
-                    position.positionKey = hash.HashEnPassant(position);
+                    position.hashKey = Hash.HashEnPassant(position);
                 }
                 else if (Move.GetPromotedPiece(move) != Piece.EMPTY)
                 {
@@ -651,7 +454,7 @@ namespace OnionEngine
 
             if (position.enPassantSquare != Square.INVALID)
             {
-                position.positionKey = hash.HashEnPassant(position);
+                position.hashKey = Hash.HashEnPassant(position);
             }
 
             // update meta info
@@ -681,8 +484,6 @@ namespace OnionEngine
             return 0;
         }
 
-
-
         public void UndoMove(ref Position position)
         {
 
@@ -691,7 +492,7 @@ namespace OnionEngine
             // get move from history
             MoveHistory entry = moveHistory[position.ply];
 
-            position.positionKey = entry.key;
+            position.hashKey = entry.hashKey;
             position.fiftyMoveCounter = entry.fiftyMoveCounter;
             position.enPassantSquare = entry.enPassantSquare;
             position.castleStatus = entry.castleStatus;
@@ -704,7 +505,10 @@ namespace OnionEngine
             position.side = 1 - position.side;
 
             // make move
-            Piece piece = MovePiece(position, to, from);
+            //Piece piece = MovePiece(position, to, from);
+            Piece piece = position.GetPieceTypeBySquare(to);
+            position.RemovePiece(to, piece);
+            position.SetPiece(from, piece);
 
             Piece promoted = Move.GetPromotedPiece(entry.move);
             if (promoted != Piece.EMPTY)
@@ -712,6 +516,7 @@ namespace OnionEngine
                 // we have already reversed the movement
                 // we just need to change the piece                
                 position.RemovePiece(from, piece);
+
                 // set pawn of the proper color
                 position.SetPiece(from, (Piece)(1 + ((int)position.side * 6)));
 
@@ -719,25 +524,51 @@ namespace OnionEngine
             else if (Move.GetCastle(entry.move))
             {
                 // if it was a castle move
+                Piece rookPiece;
+                Square rookfrom;
+                Square rookto;
+
                 // undo rook move
                 switch (to)
                 {
                     case Square.C1:
-                        MovePiece(position, Square.D1, Square.A1);
+                        //MovePiece(position, Square.D1, Square.A1);
+                        rookfrom = Square.D1;
+                        rookto = Square.A1;
+                        rookPiece = Piece.wR;
+
                         break;
                     case Square.G1:
-                        MovePiece(position, Square.F1, Square.H1);
+                        //MovePiece(position, Square.F1, Square.H1);
+                        rookfrom = Square.F1;
+                        rookto = Square.H1;
+                        rookPiece = Piece.wR;
+
                         break;
                     case Square.C8:
-                        MovePiece(position, Square.D8, Square.A8);
+                        //MovePiece(position, Square.D8, Square.A8);
+                        rookfrom = Square.D8;
+                        rookto = Square.A8;
+                        rookPiece = Piece.bR;
+
                         break;
                     case Square.G8:
-                        MovePiece(position, Square.F8, Square.H8);
+                        //MovePiece(position, Square.F8, Square.H8);
+                        rookfrom = Square.F8;
+                        rookto = Square.H8;
+                        rookPiece = Piece.bR;
+
                         break;
                     default:
+                        rookfrom = Square.INVALID;
+                        rookto = Square.INVALID;
+                        rookPiece = Piece.INVALID;
 
                         break;
                 }
+
+                position.RemovePiece(rookfrom, rookPiece);
+                position.SetPiece(rookto, rookPiece);
             }
             else if (Move.GetEnPassantCapture(entry.move))
             {
@@ -757,11 +588,13 @@ namespace OnionEngine
             //if we capture a piece
             if (capture != Piece.EMPTY)
             {
-                AddPiece(position, to, capture);
+                //AddPiece(position, to, capture);
+                position.SetPiece(to,capture);
             }
             #endregion
 
         }
+        #endregion
 
         #endregion
 

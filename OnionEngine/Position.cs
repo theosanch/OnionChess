@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace OnionEngine
 {
     class Position
@@ -12,7 +14,11 @@ namespace OnionEngine
 
         #region meta information
         // the unique key for this position
-        public ulong positionKey;
+        public ulong hashKey;
+
+        //              side
+        //              0
+
         // whose turn it is to move.
         public Color side = Color.both;
         // what square is currently available for en passant
@@ -31,7 +37,7 @@ namespace OnionEngine
         #region piece information
 
         #region bitboards
-        
+
         // each location represents a piece type for that color
         // 0 = white pawn, 1 = 
         public ulong[] locations = new ulong[12];
@@ -70,7 +76,7 @@ namespace OnionEngine
             for (int i = 0; i < 12; i++)
             {
                 // if there is a piece in that square
-                if((locations[i] & bitboardSquare) != 0)
+                if ((locations[i] & bitboardSquare) != 0)
                 {
                     // return that piece type
                     return (Piece)(i + 1);
@@ -102,7 +108,7 @@ namespace OnionEngine
             // ref type copying - arrays are ref type
             for (int i = 0; i < 12; i++)
             {
-                results.locations[i] = this.locations[i];                
+                results.locations[i] = this.locations[i];
             }
 
             return results;
@@ -111,7 +117,7 @@ namespace OnionEngine
         override public string ToString()
         {
             string result = "";
-            result = "Position: " + positionKey.ToString("X");
+            result = "Position: " + hashKey.ToString("X");
             result += "\n";
 
             for (Rank rank = Rank.Rank_8; rank >= Rank.Rank_1; rank--)
@@ -164,4 +170,5 @@ namespace OnionEngine
 
         }
     }
+
 }

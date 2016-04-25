@@ -50,7 +50,7 @@ namespace OnionEngine
         {
             info = new List<string>(); // results saved in this list
 
-            key = position.positionKey;
+            key = position.hashKey;
 
             // print current position for testing purposes
             Console.Write(position.ToString());
@@ -135,7 +135,7 @@ namespace OnionEngine
 
                 // position setup
                 string[] fen = ((file[i])[0].Split(' '));
-                Position position =  board.ParseFen(fen);
+                Position position =  Fen.ParseFen(fen);
 
                 // test
                 DateTime start = DateTime.Now;
