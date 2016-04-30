@@ -72,7 +72,7 @@ namespace OnionEngine
                 }
                 else if (command[0] == "uci")
                 {
-                    Console.WriteLine("id name Onion 0.13");
+                    Console.WriteLine("id name Onion " + version);
                     Console.WriteLine("id author Theodore J. Sanchez");
 
                     Console.WriteLine("uci ok");
@@ -89,6 +89,10 @@ namespace OnionEngine
                 else if (command[0] == "makemove")
                 {
                     brain.MakeMove(command[1]);
+                }
+                else if (command[0] == "unmakemove")
+                {
+                    brain.UnMakeMove();
                 }
                 else if (command[0] == "think")
                 {

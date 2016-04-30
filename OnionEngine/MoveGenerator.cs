@@ -310,6 +310,10 @@ namespace OnionEngine
         {
             return (bitboard << shift) | (bitboard >> 64 - shift);
         }
+        private ulong CircularRightShift(ulong bitboard, int shift)
+        {
+            return (bitboard >> shift) | (bitboard << 64 - shift);
+        }
 
         /// <summary>
         /// Generates all legal moves given a position
@@ -376,10 +380,11 @@ namespace OnionEngine
             pawnLeftCaptures = CircularLeftShift(position.locations[color] & ~BitBoard.files[0], shiftValues[(int)position.side + 2]);
             pawnRightCaptures = CircularLeftShift(position.locations[color] & ~BitBoard.files[7], shiftValues[(int)position.side + 4]);
 
-            
 
-            pawnLeftCaptures &= (enemyLocations | BitBoard.SquareToBit((int)position.enPassantSquare));
-            pawnRightCaptures &= (enemyLocations | BitBoard.SquareToBit((int)position.enPassantSquare));
+
+            pawnLeftCaptures &=  (enemyLocations | ((BitBoard.SquareToBit((int)position.enPassantSquare)) & (BitBoard.ranks[2] | BitBoard.ranks[5]) ));
+            pawnRightCaptures &= (enemyLocations | ((BitBoard.SquareToBit((int)position.enPassantSquare)) & (BitBoard.ranks[2] | BitBoard.ranks[5]) ));
+
 
             #region add moves
 
@@ -463,7 +468,7 @@ namespace OnionEngine
                     Square to = (Square)BitBoard.PopBit(ref bishopMoves);
                     // if no piece is between the move
                     if ((intersectLinesHelper[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
-                    {                       
+                    {
                         AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                     }
                 }
@@ -473,7 +478,7 @@ namespace OnionEngine
                     Piece capture = position.GetPieceTypeBySquare(to);
                     // should only intersect with the captured piece
                     if ((intersectLinesHelper[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == BitBoard.SquareToBit((int)to))
-                    {                        
+                    {
                         AddCaptureMove(Move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
@@ -498,7 +503,7 @@ namespace OnionEngine
                 {
                     Square to = (Square)BitBoard.PopBit(ref rookMoves);
                     if ((intersectLinesHelper[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
-                    {                        
+                    {
                         AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                     }
                 }
@@ -507,7 +512,7 @@ namespace OnionEngine
                     Square to = (Square)BitBoard.PopBit(ref rookCaptures);
                     Piece capture = position.GetPieceTypeBySquare(to);
                     if ((intersectLinesHelper[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == BitBoard.SquareToBit((int)to))
-                    {                        
+                    {
                         AddCaptureMove(Move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
@@ -533,7 +538,7 @@ namespace OnionEngine
                 {
                     Square to = (Square)BitBoard.PopBit(ref queenMoves);
                     if ((intersectLinesHelper[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == 0)
-                    {                        
+                    {
                         AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                     }
                 }
@@ -542,7 +547,7 @@ namespace OnionEngine
                     Square to = (Square)BitBoard.PopBit(ref queenCaptures);
                     Piece capture = position.GetPieceTypeBySquare(to);
                     if ((intersectLinesHelper[(int)from, (int)to] & (friendlyLocations | enemyLocations)) == BitBoard.SquareToBit((int)to))
-                    {                        
+                    {
                         AddCaptureMove(Move.ToInt(from, to, capture, Piece.EMPTY));
                     }
                 }
@@ -650,14 +655,14 @@ namespace OnionEngine
                 while (kingMoves > 0)
                 {
                     Square to = (Square)BitBoard.PopBit(ref kingMoves);
-                    
+
                     AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                 }
                 while (kingCaptures > 0)
                 {
                     Square to = (Square)BitBoard.PopBit(ref kingCaptures);
                     Piece capture = position.GetPieceTypeBySquare(to);
-                    
+
                     AddCaptureMove(Move.ToInt(from, to, capture, Piece.EMPTY));
                 }
             }
@@ -680,14 +685,14 @@ namespace OnionEngine
                 while (knightMoves > 0)
                 {
                     Square to = (Square)BitBoard.PopBit(ref knightMoves);
-                    
+
                     AddQuiteMove(Move.ToInt(from, to, Piece.EMPTY, Piece.EMPTY));
                 }
                 while (knightCaptures > 0)
                 {
                     Square to = (Square)BitBoard.PopBit(ref knightCaptures);
                     Piece capture = position.GetPieceTypeBySquare(to);
-                    
+
                     AddCaptureMove(Move.ToInt(from, to, capture, Piece.EMPTY));
                 }
             }

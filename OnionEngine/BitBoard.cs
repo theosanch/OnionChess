@@ -199,7 +199,7 @@ namespace OnionEngine
         // convert a square number to a bitboard with that one square "selected"
         public static ulong SquareToBit(int square)
         {
-            return  1UL<<square;
+            return 1UL << square;
         }
 
     }

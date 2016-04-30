@@ -31,7 +31,7 @@ namespace OnionEngine
             board = new Board();
 
             //currentPosition = board.StartPosition();
-            currentPosition = Fen.ParseFen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1".Split(' '));
+            currentPosition = Fen.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/4P3/2N2QPp/1pPBBP1P/1R2K2R b KQkq - 0 1".Split(' '));
 
             transposition = new Transposition();
             search = new Search(transposition);
@@ -89,7 +89,13 @@ namespace OnionEngine
         internal void MakeMove(string strMove)
         {
             board.MakeMove(ref currentPosition, Move.ParseMove(currentPosition, strMove));
-            currentPosition.ply = 0;
+            //currentPosition.ply = 0;
+
+            Console.WriteLine(currentPosition.ToString());
+        }
+        internal void UnMakeMove()
+        {
+            board.UndoMove(ref currentPosition);                        
 
             Console.WriteLine(currentPosition.ToString());
         }
@@ -135,7 +141,7 @@ namespace OnionEngine
             //currentPosition = board.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1".Split(' '));
             //currentPosition = board.ParseFen("4k3/8/8/8/8/r6r/P6P/R3K2R w KQ - 0 1".Split(' '));
             //currentPosition = board.ParseFen("4k3/8/8/8/8/8/8/4K2R w K - 0 1".Split(' '));
-            //currentPosition = board.ParseFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8".Split(' '));           
+            //currentPosition = Fen.ParseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/4P3/2N2QPp/1pPBBP1P/1R2K2R w KQkq - 0 1".Split(' '));           
 
 
             //Perft perft = new Perft();
